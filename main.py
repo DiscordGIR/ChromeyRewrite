@@ -17,23 +17,23 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 initial_extensions = [
-        "cogs.monitors.filter",
-        "cogs.monitors.antiraid",
+        # "cogs.monitors.filter",
+        # "cogs.monitors.antiraid",
         "cogs.commands.info.stats",
         "cogs.commands.info.help",
-        "cogs.commands.info.userinfo",
-        "cogs.commands.info.tags",
-        "cogs.commands.misc.admin",
-        "cogs.commands.misc.genius",
-        "cogs.commands.misc.misc",
-        "cogs.commands.mod.antiraid",
-        "cogs.commands.mod.filter",
-        "cogs.commands.mod.modactions",
-        "cogs.commands.mod.modutils",
-        "cogs.monitors.birthday",
-        "cogs.monitors.logging",
-        "cogs.monitors.role_assignment_buttons",
-        "cogs.monitors.sticky_roles",
+        # "cogs.commands.info.userinfo",
+        # "cogs.commands.info.tags",
+        # "cogs.commands.misc.admin",
+        # "cogs.commands.misc.genius",
+        # "cogs.commands.misc.misc",
+        # "cogs.commands.mod.antiraid",
+        # "cogs.commands.mod.filter",
+        # "cogs.commands.mod.modactions",
+        # "cogs.commands.mod.modutils",
+        # "cogs.monitors.birthday",
+        # "cogs.monitors.logging",
+        # "cogs.monitors.role_assignment_buttons",
+        # "cogs.monitors.sticky_roles",
 ]
 
 intents = discord.Intents.default()
@@ -58,7 +58,7 @@ class Bot(commands.Bot):
         if interaction.guild_id != cfg.guild_id:
             return
 
-        if permissions.has(interaction.user.guild, interaction.user, 6):
+        if permissions.has(interaction.user.guild, interaction.user, 3):
             return await super().process_application_commands(interaction)
         
         options = interaction.data.get("options")

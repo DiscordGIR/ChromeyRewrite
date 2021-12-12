@@ -8,7 +8,7 @@ class SlashPerms:
     # Staff Roles
     ####################
     
-    def nerds(self) -> List[Permission]:
+    def nerds_and_up(self) -> List[Permission]:
         return permissions.calculate_permissions(1)
 
     def mod_and_up(self) -> List[Permission]:

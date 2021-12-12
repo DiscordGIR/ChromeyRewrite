@@ -127,7 +127,7 @@ class Misc(commands.Cog):
         """
         # non-mod users will be ratelimited
         bot_chan = guild_service.get_guild().channel_offtopic
-        if not permissions.has(ctx.guild, ctx.author, 5) and ctx.channel.id != bot_chan:
+        if not permissions.has(ctx.guild, ctx.author, 2) and ctx.channel.id != bot_chan:
             bucket = self.spam_cooldown.get_bucket(ctx.interaction)
             if bucket.update_rate_limit():
                 raise commands.BadArgument("This command is on cooldown.")

@@ -160,7 +160,7 @@ class UserInfo(commands.Cog):
         await self.handle_userinfo(ctx, message.author)
 
     async def handle_userinfo(self, ctx: ChromeyContext, user: Union[int, discord.Member]):
-        is_mod = permissions.has(ctx.guild, ctx.author, 5)
+        is_mod = permissions.has(ctx.guild, ctx.author, 2)
         if user is None:
             user = ctx.author
         elif isinstance(user, str) or isinstance(user, int):
@@ -263,7 +263,7 @@ class UserInfo(commands.Cog):
         user = user or ctx.author
 
         # users can only invoke on themselves if they aren't mods
-        if not permissions.has(ctx.guild, ctx.author, 5) and user.id != ctx.author.id:
+        if not permissions.has(ctx.guild, ctx.author, 2) and user.id != ctx.author.id:
             raise PermissionsFailure(
                 f"You don't have permissions to check others' warnpoints.")
 
@@ -322,7 +322,7 @@ class UserInfo(commands.Cog):
             user = await user_resolver(ctx, user)
 
         # users can only invoke on themselves if they aren't mods
-        if not permissions.has(ctx.guild, ctx.author, 5) and user.id != ctx.author.id:
+        if not permissions.has(ctx.guild, ctx.author, 2) and user.id != ctx.author.id:
             raise PermissionsFailure(
                 f"You don't have permissions to check others' warnpoints.")
 

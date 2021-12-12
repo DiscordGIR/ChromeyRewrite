@@ -18,7 +18,7 @@ class ReportActions(ui.View):
         # await self.wait()
         
     def check(self, interaction: discord.Interaction):
-        if not permissions.has(self.target_member.guild, interaction.user, 5):
+        if not permissions.has(self.target_member.guild, interaction.user, 2):
             return False
         return True
 
@@ -87,7 +87,7 @@ class RaidPhraseReportActions(ui.View):
         await self.wait()
         
     def check(self, interaction: discord.Interaction):
-        if not permissions.has(self.target_member.guild, interaction.user, 5):
+        if not permissions.has(self.target_member.guild, interaction.user, 2):
             return False
         return True
 
@@ -134,7 +134,7 @@ class SpamReportActions(ui.View):
         await self.wait()
         
     def check(self, interaction: discord.Interaction):
-        if not permissions.has(self.target_member.guild, interaction.user, 5):
+        if not permissions.has(self.target_member.guild, interaction.user, 2):
             return False
         return True
 

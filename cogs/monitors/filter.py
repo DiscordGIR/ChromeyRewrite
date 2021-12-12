@@ -37,7 +37,7 @@ class Filter(commands.Cog):
             return
         if message.author.bot:
             return
-        if permissions.has(message.guild, message.author, 6):
+        if permissions.has(message.guild, message.author, 3):
             return
         db_guild = guild_service.get_guild()
         role_submod = message.guild.get_role(db_guild.role_sub_mod)
@@ -48,7 +48,7 @@ class Filter(commands.Cog):
         if message.content and await self.bad_word_filter(message, db_guild):
             return
 
-        if permissions.has(message.guild, message.author, 5):
+        if permissions.has(message.guild, message.author, 2):
             return
         if message.content and await self.do_invite_filter(message, db_guild):
             return

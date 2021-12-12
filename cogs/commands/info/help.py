@@ -26,8 +26,8 @@ class Utilities(commands.Cog):
         self.bot = bot
         self.left_col_length = 17
         self.right_col_length = 80
-        self.mod_only = ["ModActions", "ModUtils", "Filters", "BoosterEmojis", "RoleAssignButtons", "Giveaway", "Admin", "AntiRaid", "Trivia"]
-        self.genius_only = ["Genius"]
+        self.mod_only = ["ModUtils", "Filters", "ReactionRoles", "Admin"]
+        self.nerd_only = ["ModActions", "Nerd", "Tags"]
 
     @slash_command(guild_ids=[cfg.guild_id], description="View all my cogs and commands.")
     async def help(self, ctx: ChromeyContext, *, commandname: Option(str, autocomplete=commands_list, required=False)):
@@ -39,18 +39,14 @@ class Utilities(commands.Cog):
             string = ""
             for cog_name in self.bot.cogs:
                 cog = self.bot.cogs[cog_name]
-                is_admin = permissions.has(ctx.guild, ctx.author, 6)
-                is_mod = permissions.has(ctx.guild, ctx.author, 5)
-                is_genius = permissions.has(ctx.guild, ctx.author, 4)
-                submod = ctx.guild.get_role(guild_service.get_guild().role_sub_mod)
+                is_mod = permissions.has(ctx.guild, ctx.author, 2)
+                is_nerd = permissions.has(ctx.guild, ctx.author, 1)
                 
                 if not cog.get_commands() or (cog_name in self.mod_only and not is_mod):
                     continue
-                elif not cog.get_commands() or (cog_name in self.genius_only and not is_genius):
+                elif not cog.get_commands() or (cog_name in self.nerd_only and not is_nerd):
                     continue
-                elif cog_name == "SubNews" and not (submod in ctx.author.roles or is_admin):
-                    continue
-                
+
                 string += f"== {cog_name} ==\n"
 
                 for command in cog.get_commands():
@@ -98,9 +94,9 @@ class Utilities(commands.Cog):
             command = self.bot.get_application_command(commandname.lower())
             if command:
                 await ctx.respond('📬', ephemeral=True)
-                if command.cog.qualified_name in self.mod_only and not permissions.has(ctx.guild, ctx.author, 5):
+                if command.cog.qualified_name in self.mod_only and not permissions.has(ctx.guild, ctx.author, 2):
                     raise commands.BadArgument("You don't have permission to view that command.")
-                elif command.cog.qualified_name in self.genius_only and not permissions.has(ctx.guild, ctx.author, 4):
+                elif command.cog.qualified_name in self.genius_only and not permissions.has(ctx.guild, ctx.author, 1):
                     raise commands.BadArgument("You don't have permission to view that command.")
                 else:
                     embed = await self.get_usage_embed(ctx, command)
@@ -135,9 +131,9 @@ class Utilities(commands.Cog):
             raise commands.BadArgument("Command not found.")
 
     async def get_usage_embed(self,  ctx: ChromeyContext, command: SlashCommand):
-        if command.cog.qualified_name in self.mod_only and not permissions.has(ctx.guild, ctx.author, 5):
+        if command.cog.qualified_name in self.mod_only and not permissions.has(ctx.guild, ctx.author, 2):
             raise commands.BadArgument("You don't have permission to view that command.")
-        elif command.cog.qualified_name in self.genius_only and not permissions.has(ctx.guild, ctx.author, 4):
+        elif command.cog.qualified_name in self.nerd_only and not permissions.has(ctx.guild, ctx.author, 1):
             raise commands.BadArgument("You don't have permission to view that command.")
         else:
             args = ""

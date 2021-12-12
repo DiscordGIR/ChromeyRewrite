@@ -101,7 +101,7 @@ class Birthday(commands.Cog):
             raise commands.BadArgument("You are banned from birthdays.")
 
         # if the user already has a birthday set in the database, refuse to change it (if not a mod)
-        if db_user.birthday != [] and not permissions.has(ctx.guild, ctx.author, 5):
+        if db_user.birthday != [] and not permissions.has(ctx.guild, ctx.author, 2):
             raise commands.BadArgument(
                 "You already have a birthday set! You need to ask a mod to change it.")
 

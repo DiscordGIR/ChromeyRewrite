@@ -166,7 +166,7 @@ class AntiRaidMonitor(commands.Cog):
         if message.guild.id != cfg.guild_id:
             return
         message.author = message.guild.get_member(message.author.id)
-        if permissions.has(message.guild, message.author, 5):
+        if permissions.has(message.guild, message.author, 2):
             return
         
         if await self.ping_spam(message):  

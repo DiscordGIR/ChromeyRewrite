@@ -33,6 +33,17 @@ def whisper():
 ####################
 
 
+def nerds_and_up():
+    """If the user is not at least a Nerd, deny command access"""
+    async def predicate(ctx: ChromeyContext):
+        if not permissions.has(ctx.guild, ctx.author, 1):
+            raise PermissionsFailure(
+                "You do not have permission to use this command.")
+
+        return True
+    return commands.check(predicate)
+
+
 def mod_and_up():
     """If the user is not at least a Moderator, deny command access"""
     async def predicate(ctx: ChromeyContext):
@@ -73,7 +84,7 @@ def guild_owner_and_up():
 def bot_owner_and_up():
     """If the user is not the bot owner, deny command access"""
     async def predicate(ctx: ChromeyContext):
-        if not permissions.has(ctx.guild, ctx.author, 5):
+        if not permissions.has(ctx.guild, ctx.author, 2):
             raise PermissionsFailure(
                 "You do not have permission to use this command.")
 
