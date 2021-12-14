@@ -113,7 +113,7 @@ class Logging(commands.Cog):
         content = f"{reaction.emoji}\n\n{reaction.message.channel.mention} | [Link to message]({reaction.message.jump_url}) | **{member.id}**"
         body = {
             "username": str(member),
-            "avatar_url": member.display_avatar,
+            "display_avatar": member.display_avatar,
             "content": content
         }
 

@@ -44,7 +44,7 @@ class Tags(commands.Cog):
             1, 5, MessageTextBucket.custom)
 
     @slash_command(guild_ids=[cfg.guild_id], description="Display a tag")
-    async def tag(self, ctx: ChromeyContext, name: Option(str, description="Tag name", autocomplete=tags_autocomplete), args: Option(str, description="Arguments to pass to command (optional)", required=False), user_to_mention: Option(discord.Member, description="User to mention in the response", required=False)):
+    async def tag(self, ctx: ChromeyContext, name: Option(str, description="Tag name", autocomplete=tags_autocomplete), args: Option(str, description="Arguments to pass to command (optional)", required=False, default=""), user_to_mention: Option(discord.Member, description="User to mention in the response", required=False)):
         """Displays a tag.
 
         Example usage
@@ -58,20 +58,19 @@ class Tags(commands.Cog):
 
         """
         name = name.lower()
-        tag = guild_service.get_tag_by_name(name, args != "")
-        
+        tag = guild_service.get_tag_by_name(name, bool(args))
         if tag is None:
             raise commands.BadArgument("That tag does not exist.")
         
         file = tag.image.read()
         if file is not None:
             file = discord.File(BytesIO(file), filename="image.gif" if tag.image.content_type == "image/gif" else "image.png")
-        response = await self.tag_response(tag, args)
+        response = self.tag_response(tag, args)
         
         if user_to_mention is not None:
             response = f"Hey {user_to_mention.mention}, have a look at this!\n{response}"
         
-        await ctx.respond_or_edit(response, file=file, mention_author=False)
+        await ctx.respond_or_edit(response, file=file)
 
     def tag_response(self, tag, args):
         pattern = re.compile(r"((http|https)\:\/\/)?[a-zA-Z0-9\.\/\?\:@\-_=#]+\.([a-zA-Z]){2,6}([a-zA-Z0-9\.\&\/\?\:@\-_=#])*")
@@ -105,7 +104,7 @@ class Tags(commands.Cog):
             raise commands.BadArgument(
                 "Tag names can't be longer than 1 word.")
 
-        if (guild_service.get_tag_by_name(name.lower())) is not None:
+        if (guild_service.get_tag_by_name(name.lower(), args)) is not None:
             raise commands.BadArgument("Tag with that name already exists.")
 
         await ctx.defer(ephemeral=True)
@@ -123,8 +122,10 @@ class Tags(commands.Cog):
         description, response = res
         # prepare tag data for database
         tag = Tag()
+        tag._id = random.randint(0, 10000000)
         tag.name = name.lower()
         tag.content = description
+        tag.args = args
         tag.added_by_id = ctx.author.id
         tag.added_by_tag = str(ctx.author)
 
@@ -152,7 +153,7 @@ class Tags(commands.Cog):
 
     @nerds_and_up()
     @slash_command(guild_ids=[cfg.guild_id], description="Delete a tag", permissions=slash_perms.nerds_and_up())
-    async def deltag(self, ctx: ChromeyContext, name: Option(str, description="Name of tag to delete", autocomplete=tags_autocomplete)):
+    async def deltag(self, ctx: ChromeyContext, _id: int):
         """Delete tag (geniuses only)
 
         Example usage
@@ -166,16 +167,14 @@ class Tags(commands.Cog):
 
         """
 
-        name = name.lower()
-
-        tag = guild_service.get_tag_by_name(name)
+        tag = guild_service.get_tag(_id)
         if tag is None:
             raise commands.BadArgument("That tag does not exist.")
 
         if tag.image is not None:
             tag.image.delete()
 
-        guild_service.remove_tag(name)
+        guild_service.remove_tag(_id)
         await ctx.send_warning(f"Deleted tag `{tag.name}`.", delete_after=5)
 
     @whisper()
@@ -212,7 +211,7 @@ class Tags(commands.Cog):
         # always store command name as lowercase for case insensitivity
         command_name = command_name.lower()
 
-        res = sorted(ctx.settings.guild().tags, key=lambda tag: tag.name)
+        res = sorted(guild_service.get_guild().tags, key=lambda tag: tag.name)
         match = [ command for command in res if command_name in command.name ]
 
         if len(match) == 0:
@@ -222,6 +221,7 @@ class Tags(commands.Cog):
         menu = Menu(res, ctx.channel, per_page=6,
                     format_page=format_tag_page, interaction=True, ctx=ctx, whisper=ctx.whisper)
 
+        await menu.start()
 
     async def prepare_tag_embed(self, tag):
         """Given a tag object, prepare the appropriate embed for it

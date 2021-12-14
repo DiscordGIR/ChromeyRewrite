@@ -164,6 +164,7 @@ async def date_autocompleter(ctx: AutocompleteContext) -> list:
 
 async def tags_autocomplete(ctx: AutocompleteContext):
     tags = [tag.name.lower() for tag in guild_service.get_guild().tags]
+    tags = list(set(tags))
     tags.sort()
     return [tag for tag in tags if tag.lower().startswith(ctx.value.lower())][:25]
 

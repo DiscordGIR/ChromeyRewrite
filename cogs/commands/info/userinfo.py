@@ -17,44 +17,6 @@ from utils.permissions.converters import user_resolver
 from utils.permissions.permissions import permissions
 
 
-async def format_xptop_page(entries, all_pages, current_page, ctx):
-    """Formats the page for the xptop embed.
-
-    Parameters
-    ----------
-    entry : dict
-        "The dictionary for the entry"
-    all_pages : list
-        "All entries that we will eventually iterate through"
-    current_page : number
-        "The number of the page that we are currently on"
-
-    Returns
-    -------
-    discord.Embed
-        "The embed that we will send"
-
-    """
-    embed = discord.Embed(title=f'Leaderboard', color=discord.Color.blurple())
-    for i, user in entries:
-        member = ctx.guild.get_member(user._id)
-        trophy = ''
-        if current_page == 1:
-            if i == entries[0][0]:
-                trophy = ':first_place:'
-                embed.set_thumbnail(url=member.avatar)
-            if i == entries[1][0]:
-                trophy = ':second_place:'
-            if i == entries[2][0]:
-                trophy = ':third_place:'
-
-        embed.add_field(name=f"#{i+1} - Level {user.level}",
-                        value=f"{trophy} {member.mention}", inline=False)
-
-    embed.set_footer(text=f"Page {current_page} of {len(all_pages)}")
-    return embed
-
-
 async def format_cases_page(entries, all_pages, current_page, ctx):
     """Formats the page for the cases embed.
 
@@ -85,31 +47,39 @@ async def format_cases_page(entries, all_pages, current_page, ctx):
     user = ctx.case_user
     u = user_service.get_user(user.id)
 
+    embed = discord.Embed(
+        title=f'Cases', color=discord.Color.blurple())
+    embed.set_author(name=user, icon_url=user.display_avatar)
+
     for page in all_pages:
         for case in page:
             page_count = page_count + 1
     embed = discord.Embed(
-        title=f'Cases - {u.warn_points} warn points', color=discord.Color.blurple())
+        title=f'Cases', color=discord.Color.blurple())
     embed.set_author(name=user, icon_url=user.display_avatar)
+
     for case in entries:
-        timestamp = case.date
-        formatted = f"{format_dt(timestamp, style='F')} ({format_dt(timestamp, style='R')})"
+        timestamp = case.date.strftime("%B %d, %Y, %I:%M %p")
         if case._type == "WARN" or case._type == "LIFTWARN":
             if case.lifted:
-                embed.add_field(name=f'{await determine_emoji(case._type)} Case #{case._id} [LIFTED]', value=f'**Points**: {case.punishment}\n**Reason**: {case.reason}\n**Lifted by**: {case.lifted_by_tag}\n**Lift reason**: {case.lifted_reason}\n**Warned on**: {formatted}', inline=True)
-            elif case._type == "LIFTWARN":
-                embed.add_field(name=f'{await determine_emoji(case._type)} Case #{case._id} [LIFTED (legacy)]', value=f'**Points**: {case.punishment}\n**Reason**: {case.reason}\n**Moderator**: {case.mod_tag}\n**Warned on**: {formatted}', inline=True)
+                embed.add_field(name=f'{await determine_emoji(case._type)} Case #{case._id} [LIFTED]',
+                                value=f'**Reason**: {case.reason}\n**Lifted by**: {case.lifted_by_tag}\n**Lift reason**: {case.lifted_reason}\n**Warned on**: {timestamp}', inline=True)
             else:
-                embed.add_field(name=f'{await determine_emoji(case._type)} Case #{case._id}', value=f'**Points**: {case.punishment}\n**Reason**: {case.reason}\n**Moderator**: {case.mod_tag}\n**Warned on**: {formatted}', inline=True)
-        elif case._type == "MUTE" or case._type == "REMOVEPOINTS":
-            embed.add_field(name=f'{await determine_emoji(case._type)} Case #{case._id}', value=f'**{pun_map[case._type]}**: {case.punishment}\n**Reason**: {case.reason}\n**Moderator**: {case.mod_tag}\n**Time**: {formatted}', inline=True)
+                embed.add_field(name=f'{await determine_emoji(case._type)} Case #{case._id}',
+                                value=f'**Reason**: {case.reason}\n**Moderator**: {case.mod_tag}\n**Warned on**: {timestamp} UTC', inline=True)
+        elif case._type == "MUTE":
+            embed.add_field(name=f'{await determine_emoji(case._type)} Case #{case._id}',
+                            value=f'**{pun_map[case._type]}**: {case.punishment}\n**Reason**: {case.reason}\n**Moderator**: {case.mod_tag}\n**Time**: {timestamp} UTC', inline=True)
         elif case._type in pun_map:
-            embed.add_field(name=f'{await determine_emoji(case._type)} Case #{case._id}', value=f'**Reason**: {case.reason}\n**Moderator**: {case.mod_tag}\n**{pun_map[case._type]} on**: {formatted}', inline=True)
+            embed.add_field(name=f'{await determine_emoji(case._type)} Case #{case._id}',
+                            value=f'**Reason**: {case.reason}\n**Moderator**: {case.mod_tag}\n**{pun_map[case._type]} on**: {timestamp} UTC', inline=True)
         else:
-            embed.add_field(name=f'{await determine_emoji(case._type)} Case #{case._id}', value=f'**Reason**: {case.reason}\n**Moderator**: {case.mod_tag}\n**Time**: {formatted}', inline=True)
+            embed.add_field(name=f'{await determine_emoji(case._type)} Case #{case._id}',
+                            value=f'**Reason**: {case.reason}\n**Moderator**: {case.mod_tag}\n**Time**: {timestamp} UTC', inline=True)
     embed.set_footer(
-        text=f"Page {current_page} of {len(all_pages)} - newest cases first ({page_count} total cases)")
+        text=f"Page {current_page} of {len(all_pages)} - newest cases first")
     return embed
+
 
 
 async def determine_emoji(type):
@@ -189,17 +159,11 @@ class UserInfo(commands.Cog):
             roles = "No roles."
             joined = f"User not in {ctx.guild}"
 
-        results = user_service.get_user(user.id)
-
         embed = discord.Embed(title=f"User Information", color=user.color)
         embed.set_author(name=user)
         embed.set_thumbnail(url=user.display_avatar)
         embed.add_field(name="Username",
                         value=f'{user} ({user.mention})', inline=True)
-        embed.add_field(
-            name="Level", value=results.level if not results.is_clem else "0", inline=True)
-        embed.add_field(
-            name="XP", value=results.xp if not results.is_clem else "0/0", inline=True)
         embed.add_field(
             name="Roles", value=roles[:1024] if roles else "None", inline=False)
         embed.add_field(
@@ -207,96 +171,6 @@ class UserInfo(commands.Cog):
         embed.add_field(name="Account creation date",
                         value=f"{format_dt(user.created_at, style='F')} ({format_dt(user.created_at, style='R')})", inline=True)
         await ctx.respond(embed=embed, ephemeral=ctx.whisper)
-
-    @whisper()
-    @slash_command(guild_ids=[cfg.guild_id], description="Show your or another user's XP")
-    async def xp(self, ctx: ChromeyContext, user: Option(discord.Member, description="Member to show xp of", required=False)):
-        """Show your or another user's XP
-
-        Example usage
-        --------------
-        /xp user:<user>
-
-        Parameters
-        ----------
-        user : discord.Member, optional
-            "User to get XP of, by default None"
-
-        """
-
-        if user is None:
-            user = ctx.author
-
-        results = user_service.get_user(user.id)
-
-        embed = discord.Embed(title="Level Statistics")
-        embed.color = user.top_role.color
-        embed.set_author(name=user, icon_url=user.display_avatar)
-        embed.add_field(
-            name="Level", value=results.level if not results.is_clem else "0", inline=True)
-        embed.add_field(
-            name="XP", value=f'{results.xp}/{xp_for_next_level(results.level)}' if not results.is_clem else "0/0", inline=True)
-        rank, overall = user_service.leaderboard_rank(results.xp)
-        embed.add_field(
-            name="Rank", value=f"{rank}/{overall}" if not results.is_clem else f"{overall}/{overall}", inline=True)
-
-        await ctx.respond(embed=embed, ephemeral=ctx.whisper)
-
-    @whisper()
-    @slash_command(guild_ids=[cfg.guild_id], description="Show your or another user's warnpoints")
-    async def warnpoints(self, ctx: ChromeyContext, user: Option(discord.Member, description="Member to show warnpoints of", required=False)):
-        """Show a user's warnpoints (mod only)
-
-        Example usage
-        --------------
-        /warnpoints <@user/ID>
-
-        Parameters
-        ----------
-        user : discord.Member, optional
-            "User whose warnpoints to show"
-
-        """
-
-        # if an invokee is not provided in command, call command on the invoker
-        # (get invoker's warnpoints)
-        user = user or ctx.author
-
-        # users can only invoke on themselves if they aren't mods
-        if not permissions.has(ctx.guild, ctx.author, 2) and user.id != ctx.author.id:
-            raise PermissionsFailure(
-                f"You don't have permissions to check others' warnpoints.")
-
-        # fetch user profile from database
-        results = user_service.get_user(user.id)
-
-        embed = discord.Embed(title="Warn Points",
-                              color=discord.Color.orange())
-        embed.set_thumbnail(url=user.display_avatar)
-        embed.add_field(
-            name="Member", value=f'{user.mention}\n{user}\n({user.id})', inline=True)
-        embed.add_field(name="Warn Points",
-                        value=results.warn_points, inline=True)
-
-        await ctx.respond(embed=embed, ephemeral=ctx.whisper)
-
-    @whisper()
-    @slash_command(guild_ids=[cfg.guild_id], description="Show the XP leaderboard.")
-    async def xptop(self, ctx: ChromeyContext):
-        """Show XP leaderboard for top 100, ranked highest to lowest.
-
-        Example usage
-        --------------
-        /xptop
-
-        """
-
-        results = enumerate(user_service.leaderboard())
-        results = [(i, m) for (i, m) in results if ctx.guild.get_member(
-            m._id) is not None][0:100]
-        menu = Menu(results, ctx.channel, format_page=format_xptop_page,
-                    interaction=True, ctx=ctx, whisper=ctx.whisper, per_page=10)
-        await menu.start()
 
     @whisper()
     @slash_command(guild_ids=[cfg.guild_id], description="Show your or another user's cases")
@@ -346,9 +220,6 @@ class UserInfo(commands.Cog):
     @userinfo_rc.error
     @userinfo_msg.error
     @userinfo.error
-    @warnpoints.error
-    @xp.error
-    @xptop.error
     async def info_error(self,  ctx: ChromeyContext, error):
         if isinstance(error, discord.ApplicationCommandInvokeError):
             error = error.original
