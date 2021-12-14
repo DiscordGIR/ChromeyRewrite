@@ -11,146 +11,41 @@ from discord.commands.context import AutocompleteContext
 from utils.mod.give_birthday_role import MONTH_MAPPING
 
 
-def sort_versions(version):
-    v = version.split(' ')
-    v[0] = list(map(int, v[0].split('.')))
-    return v
-
-
-def transform_groups(groups):
-    final_groups = []
-    for group in groups:
-        if group.get("subgroups") is not None:
-            for subgroup in group.get('subgroups'):
-                subgroup['order'] = group.get('order')
-                final_groups.append(subgroup)
-        else:
-            final_groups.append(group)
-
-    return final_groups
-
-
 @cached(ttl=3600)
-async def get_ios_cfw():
-    """Gets all apps on ios.cfw.guide
-
-    Returns
-    -------
-    dict
-        "ios, jailbreaks, devices"
-    """
-
+async def get_skylar_api():
     async with aiohttp.ClientSession() as session:
-        async with session.get("https://ios.cfw.guide/main.json") as resp:
-            if resp.status == 200:
-                data = await resp.json()
+        async with session.get('https://raw.githubusercontent.com/skylartaylor/cros-updates/master/src/data/cros-updates.json') as response:
+            if response.status == 200:
+                text = await response.text()
+                return json.loads(text)
+            else:
+                return None
 
-    return data
 
-
-async def jb_autocomplete(ctx: AutocompleteContext):
-    apps = await get_ios_cfw()
-    if apps is None:
+async def board_autocompleter(ctx: AutocompleteContext):
+    boards = await get_skylar_api()
+    if boards is None:
         return []
 
-    apps = apps.get("jailbreak")
-    apps.sort(key=lambda x: x["name"].lower())
-    return [app["name"] for app in apps if app["name"].lower().startswith(ctx.value.lower())][:25]
+    boards = [device.get("Codename") for device in boards if device.get("Codename") is not None and len(device.get("Codename")) < 60 and ctx.value.lower() in device.get("Codename").lower()]
+    boards.sort()
+    return boards[:25]
 
 
-async def ios_version_autocomplete(ctx: AutocompleteContext):
-    versions = await get_ios_cfw()
-    if versions is None:
+async def device_autocompleter(ctx: AutocompleteContext):
+    boards = await get_skylar_api()
+    if boards is None:
         return []
 
-    versions = versions.get("ios")
-    versions.sort(key=lambda x: x.get("released")
-                  or "1970-01-01", reverse=True)
-    return [f"{v['version']} ({v['build']})" for v in versions if (ctx.value.lower() in v['version'].lower() or ctx.value.lower() in v['build'].lower()) and not v['beta']][:25]
-
-
-async def ios_on_device_autocomplete(ctx: AutocompleteContext):
-    cfw = await get_ios_cfw()
-    if cfw is None:
-        return []
-
-    ios = cfw.get("ios")
-    devices = cfw.get("groups")
-    transformed_devices = transform_groups(devices)
-    selected_device = ctx.options.get("device")
-
-    matching_devices = [
-        d for d in transformed_devices if selected_device.lower() == d.get('name').lower() or any(selected_device.lower() == x.lower() for x in d.get("devices"))]
-
-    if not matching_devices:
-        return []
-
-    matching_device = matching_devices[0].get("devices")[0]
-    matching_ios = [version.get("version") for version in ios if matching_device in version.get(
-        'devices') and ctx.value.lower() in version.get('version').lower()]
-
-    matching_ios.sort(key=sort_versions, reverse=True)
-    return matching_ios[:25]
-
-
-async def device_autocomplete(ctx: AutocompleteContext):
-    res = await get_ios_cfw()
-    if res is None:
-        return []
-
-    all_devices = res.get("groups")
-    transformed_devices = transform_groups(all_devices)
-    devices = [d for d in transformed_devices if (any(ctx.value.lower() in x.lower() for x in d.get('devices')) or ctx.value.lower() in d.get('name').lower())]
-
-    devices.sort(key=lambda x: x.get('type') or "zzz")
-    devices_groups = groupby(devices, lambda x: x.get('type'))
-
-    devices = []
-    for _, group in devices_groups:
-        group = list(group)
-        group.sort(key=lambda x: x.get('order'), reverse=True)
-        devices.extend(group)
-
-        if len(devices) >= 25:
-            break
-
-    return [device.get('name') for device in devices][:25]
-
-
-async def device_autocomplete_jb(ctx: AutocompleteContext):
-    res = await get_ios_cfw()
-    if res is None:
-        return []
-
-    all_devices = res.get("groups")
-    transformed_devices = transform_groups(all_devices)
-    devices = [d for d in transformed_devices if (any(ctx.value.lower() in x.lower() for x in d.get(
-        'devices')) or ctx.value.lower() in d.get('name').lower()) and d.get('type') not in ["TV", "Watch"]]
-
-    devices.sort(key=lambda x: x.get('type') or "zzz")
-    devices_groups = groupby(devices, lambda x: x.get('type'))
-
-    devices = []
-    for _, group in devices_groups:
-        group = list(group)
-        group.sort(key=lambda x: x.get('order'), reverse=True)
-        devices.extend(group)
-
-        if len(devices) >= 25:
-            break
-
-    return [device.get('name') for device in devices][:25]
-
-
-async def ios_beta_version_autocomplete(ctx: AutocompleteContext):
-    versions = await get_ios_cfw()
-    if versions is None:
-        return []
-
-    versions = versions.get("ios")
-    versions.sort(key=lambda x: x.get("released")
-                  or "1970-01-01", reverse=True)
-    return [f"{v['version']} ({v['build']})" for v in versions if (ctx.value.lower() in v['version'].lower() or ctx.value.lower() in v['build'].lower()) and v['beta']][:25]
+    # boards = [device.get("Codename") for device in boards if device.get("Codename") is not None and len(device.get("Codename")) < 60 and ctx.value.lower() in device.get("Codename").lower()]
+    # boards.sort()
+    # return boards[:25]
+    
+    #     search_results = [(device["Codename"], device["Brand names"])
+    #                       for device in devices if 'Brand names' in device and search_term in device['Brand names'].lower()]
+    devices = [device.get("Brand names")[:100] for device in boards if device.get("Brand names") is not None and ctx.value.lower() in device.get("Brand names").lower()]
+    devices.sort()
+    return devices[:25]
 
 
 async def date_autocompleter(ctx: AutocompleteContext) -> list:

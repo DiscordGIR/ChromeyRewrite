@@ -1,14 +1,12 @@
 import random
 import re
 import traceback
-from datetime import datetime
 from io import BytesIO
 
 import discord
 from data.model.tag import Tag
 from data.services.guild_service import guild_service
 from discord.commands import Option, slash_command
-from discord.commands.commands import message_command, user_command
 from discord.ext import commands
 from discord.ext.commands.cooldowns import CooldownMapping
 from utils.autocompleters import tags_autocomplete
@@ -19,7 +17,6 @@ from utils.menu import Menu
 from utils.message_cooldown import MessageTextBucket
 from utils.permissions.checks import (PermissionsFailure,
                                       nerds_and_up, whisper)
-from utils.permissions.permissions import permissions
 from utils.permissions.slash_perms import slash_perms
 
 

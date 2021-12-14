@@ -206,6 +206,20 @@ class Misc(commands.Cog):
 
         view.message = await ctx.respond(embed=embed, ephemeral=ctx.whisper, view=view)
 
+    # TODO: fix this
+    # @commands.command(name='helpers')
+    # @commands.cooldown(type=commands.BucketType.member, rate=1, per=86400)
+    # async def helpers(self, ctx):
+    #     """Tag helpers, usable in #support once every 24 hours per user"""
+
+    #     if ctx.channel.id != ctx.settings.guild().channel_support:
+    #        self.helpers.reset_cooldown(ctx)
+    #        raise commands.BadArgument(f'This command is only usable in <#{ctx.settings.guild().channel_support}>!')
+           
+    #     helper_role = ctx.guild.get_role(ctx.settings.guild().role_helpers)
+    #     await ctx.message.reply(f'{ctx.author.mention} pinged {helper_role.mention}', allowed_mentions=discord.AllowedMentions(roles=True))
+
+    # @helpers.error
     @remindme.error
     @jumbo.error
     @avatar.error
