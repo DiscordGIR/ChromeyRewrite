@@ -1,6 +1,6 @@
 import discord
 from discord.commands import Option, slash_command
-from discord.commands.commands import message_command, user_command
+from discord.commands import message_command, user_command
 from discord.ext import commands
 
 import base64
@@ -8,13 +8,14 @@ import datetime
 import io
 import json
 import traceback
+from discord.object import Object
 import pytimeparse
 from PIL import Image
 from data.services.guild_service import guild_service
 from utils.logger import logger
 from utils.config import cfg
 from utils.context import ChromeyContext
-from utils.permissions.checks import PermissionsFailure, whisper
+from utils.permissions.checks import PermissionsFailure, always_whisper, whisper
 from utils.permissions.permissions import permissions
 
 
@@ -68,6 +69,9 @@ class Misc(commands.Cog):
         self.bot = bot
         self.spam_cooldown = commands.CooldownMapping.from_cooldown(
             3, 15.0, commands.BucketType.channel)
+
+        self.helpers_cooldown = commands.CooldownMapping.from_cooldown(
+            1, 86400, commands.BucketType.member)
 
         try:
             with open('emojis.json') as f:
@@ -206,20 +210,28 @@ class Misc(commands.Cog):
 
         view.message = await ctx.respond(embed=embed, ephemeral=ctx.whisper, view=view)
 
-    # TODO: fix this
-    # @commands.command(name='helpers')
-    # @commands.cooldown(type=commands.BucketType.member, rate=1, per=86400)
-    # async def helpers(self, ctx):
-    #     """Tag helpers, usable in #support once every 24 hours per user"""
+    @always_whisper()
+    @slash_command(guild_ids=[cfg.guild_id], description="Tag helpers, usable in #support once every 24 hours per user")
+    async def helpers(self, ctx: ChromeyContext):
+        """Tag helpers, usable in #support once every 24 hours per user"""
 
-    #     if ctx.channel.id != ctx.settings.guild().channel_support:
-    #        self.helpers.reset_cooldown(ctx)
-    #        raise commands.BadArgument(f'This command is only usable in <#{ctx.settings.guild().channel_support}>!')
-           
-    #     helper_role = ctx.guild.get_role(ctx.settings.guild().role_helpers)
-    #     await ctx.message.reply(f'{ctx.author.mention} pinged {helper_role.mention}', allowed_mentions=discord.AllowedMentions(roles=True))
+        db_guild = guild_service.get_guild()
+        if ctx.channel.id != db_guild.channel_support:
+            raise commands.BadArgument(f'This command is only usable in <#{db_guild.channel_support}>!')
 
-    # @helpers.error
+        obj = Object(ctx.interaction.user.id)
+        obj.author = ctx.interaction
+        obj.guild = ctx.interaction.guild
+        bucket = self.helpers_cooldown.get_bucket(obj)
+        current = datetime.datetime.now().replace(tzinfo=datetime.timezone.utc).timestamp()
+        if bucket.update_rate_limit(current):
+            raise commands.BadArgument("This command is on cooldown.")
+
+        helper_role = ctx.guild.get_role(db_guild.role_helpers)
+        await ctx.channel.send(f'{ctx.author.mention} pinged {helper_role.mention}', allowed_mentions=discord.AllowedMentions(roles=True))
+        await ctx.send_success("Done!")
+
+    @helpers.error
     @remindme.error
     @jumbo.error
     @avatar.error

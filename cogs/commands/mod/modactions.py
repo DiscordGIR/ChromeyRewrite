@@ -1,6 +1,6 @@
 import discord
 from discord.commands import Option, slash_command
-from discord.commands.commands import message_command, user_command
+from discord.commands import message_command, user_command
 from discord.ext import commands
 from discord.utils import escape_markdown, escape_mentions
 
