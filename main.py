@@ -33,7 +33,10 @@ initial_extensions = [
         "cogs.commands.mod.modactions",
         "cogs.commands.mod.modutils",
         "cogs.monitors.logging",
+        "cogs.monitors.crosblog",
+        "cogs.monitors.dealwatcher",
         "cogs.monitors.role_assignment_buttons",
+        "cogs.monitors.rolecount",
         "cogs.monitors.sticky_roles",
 ]
 
