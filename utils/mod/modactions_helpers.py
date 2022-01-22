@@ -58,7 +58,12 @@ async def notify_user(user, text, log):
     try:
         await user.send(text, embed=log)
     except Exception:
-        return False
+        db_guild = guild_service.get_guild()
+        channel = user.guild.get_channel(db_guild.channel_offtopic)
+        if channel is None:
+            return
+        await channel.send(f"{user.mention}, I tried to DM you this but your DMs are closed!\n{text}", embed=log)
+
     return True
 
 
@@ -76,7 +81,15 @@ async def notify_user_warn(ctx: ChromeyContext, user: discord.User, log):
     """
 
     if isinstance(user, discord.Member):
-        await notify_user(user, f"You were warned in {ctx.guild.name}.", log)
+        # await notify_user(user, f"You were warned in {ctx.guild.name}.", log)
+        try:
+            await user.send(f"You were warned in {ctx.guild.name}.", embed=log)
+        except Exception:
+            db_guild = guild_service.get_guild()
+            channel = user.guild.get_channel(db_guild.channel_offtopic)
+            if channel is None:
+                return
+            await channel.send(f"{user.mention}, I tried to DM you this but your DMs are closed!\nYou were warned in {ctx.guild.name}.", embed=log)
 
 
 async def submit_mod_log(ctx: ChromeyContext, db_guild: Guild, user: Union[discord.Member, discord.User], log):

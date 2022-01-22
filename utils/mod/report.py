@@ -38,7 +38,7 @@ async def report(bot: discord.Client, message: discord.Message, word: str, invit
         embed = prepare_embed(message, word)
         report_msg = await channel.send(ping_string, embed=embed, view=view)
 
-    ctx = await bot.get_context(report_msg)
+    ctx = await bot.get_context(report_msg, cls=ChromeyOldContext)
     await view.start(ctx)
 
 async def manual_report(bot: discord.Client, mod: discord.Member, target: Union[discord.Message, discord.Member] = None):
@@ -66,7 +66,7 @@ async def manual_report(bot: discord.Client, mod: discord.Member, target: Union[
     embed = prepare_embed(target, title="A moderator reported a member")
     report_msg = await channel.send(ping_string, embed=embed, view=view)
 
-    ctx = await bot.get_context(report_msg)
+    ctx = await bot.get_context(report_msg, cls=ChromeyOldContext)
     await view.start(ctx)
 
 

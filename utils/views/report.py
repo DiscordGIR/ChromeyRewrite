@@ -4,7 +4,7 @@ from discord.ext.commands import Context
 import pytimeparse
 from data.services.guild_service import guild_service
 from utils.context import ChromeyOldContext, PromptData
-from utils.mod.global_modactions import ban, mute, unmute
+from utils.mod.global_modactions import ban, mute, unmute, warn
 from utils.permissions.permissions import permissions
 from utils.views.modactions import ModViewReport
 
@@ -18,7 +18,7 @@ class ReportActions(ui.View):
         # await self.wait()
         
     def check(self, interaction: discord.Interaction):
-        if not permissions.has(self.target_member.guild, interaction.user, 5):
+        if not permissions.has(self.target_member.guild, interaction.user, 2):
             return False
         return True
 
@@ -33,22 +33,50 @@ class ReportActions(ui.View):
         if not self.check(interaction):
             return
 
-        view = ModViewReport(self.target_member, interaction.user, self.ctx.message, mod_action=ModViewReport.ModAction.WARN)
-        await (await self.ctx.bot.get_application_context(interaction)).defer()
-        msg = await self.ctx.channel.send(embed=discord.Embed(description=f"{interaction.user.mention}, choose a warn reason for {self.target_member.mention}.", color=discord.Color.blurple()), view=view)
-        new_ctx = await self.ctx.bot.get_context(msg, cls=ChromeyOldContext)
-        await view.start(new_ctx)
+        # view = ModViewReport(self.target_member, interaction.user, self.ctx.message, mod_action=ModViewReport.ModAction.WARN)
+        # await (await self.ctx.bot.get_application_context(interaction)).defer()
+        # msg = await self.ctx.channel.send(embed=discord.Embed(description=f"{interaction.user.mention}, choose a warn reason for {self.target_member.mention}.", color=discord.Color.blurple()), view=view)
+        # new_ctx = await self.ctx.bot.get_context(msg, cls=ChromeyOldContext)
+        # await view.start(new_ctx)
+        prompt_data = PromptData(value_name="Reason", 
+                                        description=f"Reason for warn?",
+                                        convertor=str,
+                                        timeout=30
+                                        )
+        if not interaction.response.is_done():
+            await interaction.response.defer()
+
+        self.ctx.author = interaction.user
+        reason = await self.ctx.prompt(prompt_data)
+        if reason is not None:
+            await warn(self.ctx, self.target_member, reason)
+
+        await self.ctx.message.delete()
 
     @ui.button(emoji="❌", label="Ban", style=discord.ButtonStyle.primary)
     async def ban(self, button: ui.Button, interaction: discord.Interaction):
         if not self.check(interaction):
             return
 
-        view = ModViewReport(self.target_member, interaction.user, self.ctx.message, mod_action=ModViewReport.ModAction.BAN)
-        await (await self.ctx.bot.get_application_context(interaction)).defer()
-        msg = await self.ctx.channel.send(embed=discord.Embed(description=f"{interaction.user.mention}, choose a ban reason for {self.target_member.mention}.", color=discord.Color.blurple()), view=view)
-        new_ctx = await self.ctx.bot.get_context(msg, cls=ChromeyOldContext)
-        await view.start(new_ctx)
+        # view = ModViewReport(self.target_member, interaction.user, self.ctx.message, mod_action=ModViewReport.ModAction.BAN)
+        # await (await self.ctx.bot.get_application_context(interaction)).defer()
+        # msg = await self.ctx.channel.send(embed=discord.Embed(description=f"{interaction.user.mention}, choose a ban reason for {self.target_member.mention}.", color=discord.Color.blurple()), view=view)
+        # new_ctx = await self.ctx.bot.get_context(msg, cls=ChromeyOldContext)
+        # await view.start(new_ctx)
+        prompt_data = PromptData(value_name="Reason", 
+                                        description=f"Reason for ban?",
+                                        convertor=str,
+                                        timeout=30
+                                        )
+        if not interaction.response.is_done():
+            await interaction.response.defer()
+
+        self.ctx.author = interaction.user
+        reason = await self.ctx.prompt(prompt_data)
+        if reason is not None:
+            await ban(self.ctx, self.target_member, reason)
+
+        await self.ctx.message.delete()
 
     @ui.button(emoji="🆔", label="Post ID", style=discord.ButtonStyle.primary)
     async def id(self, button: ui.Button, interaction: discord.Interaction):
@@ -69,7 +97,7 @@ class ReportActions(ui.View):
 
         embed = discord.Embed(color=discord.Color.blurple())
         embed.description = f"{interaction.user.mention} is looking into {self.target_member.mention}'s report!"
-        await self.ctx.send(embed=embed)
+        await self.ctx.send(embed=embed, delete_after=5)
 
         report_embed = self.ctx.message.embeds[0]
         report_embed.color = discord.Color.orange()
@@ -87,7 +115,7 @@ class RaidPhraseReportActions(ui.View):
         await self.wait()
         
     def check(self, interaction: discord.Interaction):
-        if not permissions.has(self.target_member.guild, interaction.user, 5):
+        if not permissions.has(self.target_member.guild, interaction.user, 2):
             return False
         return True
 
@@ -104,7 +132,7 @@ class RaidPhraseReportActions(ui.View):
         finally:
             await self.ctx.message.delete()
         
-    @ui.button(emoji="💀", label="Ban and add raidphrase", style=discord.ButtonStyle.primary)
+    @ui.button(emoji="💀", label="Ban, unban, and add raidphrase", style=discord.ButtonStyle.primary)
     async def ban(self, button: ui.Button, interaction: discord.Interaction):
         if not self.check(interaction):
             return
@@ -136,7 +164,7 @@ class SpamReportActions(ui.View):
         await self.wait()
         
     def check(self, interaction: discord.Interaction):
-        if not permissions.has(self.target_member.guild, interaction.user, 5):
+        if not permissions.has(self.target_member.guild, interaction.user, 2):
             return False
         return True
 

@@ -25,7 +25,6 @@ from utils.permissions.checks import PermissionsFailure, always_whisper, mod_and
 from utils.permissions.converters import (
     mods_and_above_external_resolver, mods_and_above_member_resolver, user_resolver)
 from utils.permissions.slash_perms import slash_perms
-from utils.views.modactions import WarnView
 
 
 class ModActions(commands.Cog):
@@ -53,21 +52,21 @@ class ModActions(commands.Cog):
 
         await warn(ctx, user, reason)
 
-    @mod_and_up()
-    @always_whisper()
-    @user_command(guild_ids=[cfg.guild_id], name="Warn user")
-    async def warn_rc(self, ctx: ChromeyContext, member: discord.Member) -> None:
-        member = await mods_and_above_external_resolver(ctx, member)
-        view = WarnView(ctx, member)
-        await ctx.respond(embed=discord.Embed(description=f"Choose a warn reason for {member.mention}.", color=discord.Color.blurple()), view=view, ephemeral=True)
+    # @mod_and_up()
+    # @always_whisper()
+    # @user_command(guild_ids=[cfg.guild_id], name="Warn user")
+    # async def warn_rc(self, ctx: ChromeyContext, member: discord.Member) -> None:
+    #     member = await mods_and_above_external_resolver(ctx, member)
+    #     view = WarnView(ctx, member)
+    #     await ctx.respond(embed=discord.Embed(description=f"Choose a warn reason for {member.mention}.", color=discord.Color.blurple()), view=view, ephemeral=True)
 
-    @mod_and_up()
-    @always_whisper()
-    @message_command(guild_ids=[cfg.guild_id], name="Warn user")
-    async def warn_msg(self, ctx: ChromeyContext, message: discord.Message) -> None:
-        member = await mods_and_above_external_resolver(ctx, message.author)
-        view = WarnView(ctx, message.author)
-        await ctx.respond(embed=discord.Embed(description=f"Choose a warn reason for {member.mention}.", color=discord.Color.blurple()), view=view, ephemeral=True)
+    # @mod_and_up()
+    # @always_whisper()
+    # @message_command(guild_ids=[cfg.guild_id], name="Warn user")
+    # async def warn_msg(self, ctx: ChromeyContext, message: discord.Message) -> None:
+    #     member = await mods_and_above_external_resolver(ctx, message.author)
+    #     view = WarnView(ctx, message.author)
+    #     await ctx.respond(embed=discord.Embed(description=f"Choose a warn reason for {member.mention}.", color=discord.Color.blurple()), view=view, ephemeral=True)
 
     @mod_and_up()
     @slash_command(guild_ids=[cfg.guild_id], description="Kick a user", permissions=slash_perms.mod_and_up())
@@ -497,8 +496,8 @@ class ModActions(commands.Cog):
     @scam.error
     @ban.error
     @warn.error
-    @warn_rc.error
-    @warn_msg.error
+    # @warn_rc.error
+    # @warn_msg.error
     @purge.error
     @kick.error
     @editreason.error

@@ -4,66 +4,66 @@ from utils.context import ChromeyContext, PromptData
 from utils.mod.global_modactions import ban, warn
 from enum import Enum
 
-class WarnView(ui.View):
-    def __init__(self, ctx: ChromeyContext, member: discord.Member):
-        super().__init__(timeout=30)
-        self.target_member = member
-        self.ctx = ctx
+# class WarnView(ui.View):
+#     def __init__(self, ctx: ChromeyContext, member: discord.Member):
+#         super().__init__(timeout=30)
+#         self.target_member = member
+#         self.ctx = ctx
 
-    async def on_timeout(self) -> None:
-        await self.ctx.send_warning("Timed out.")
+#     async def on_timeout(self) -> None:
+#         await self.ctx.send_warning("Timed out.")
 
-    def check(self, interaction: discord.Interaction):
-        if not self.ctx.author == interaction.user:
-            return False
-        return True
+#     def check(self, interaction: discord.Interaction):
+#         if not self.ctx.author == interaction.user:
+#             return False
+#         return True
 
-    @ui.button(label="piracy", style=discord.ButtonStyle.primary)
-    async def piracy(self, button: ui.Button, interaction: discord.Interaction):
-        if not self.check(interaction):
-            return
+#     @ui.button(label="piracy", style=discord.ButtonStyle.primary)
+#     async def piracy(self, button: ui.Button, interaction: discord.Interaction):
+#         if not self.check(interaction):
+#             return
 
-        await warn(self.ctx, self.target_member, "piracy")
+#         await warn(self.ctx, self.target_member, "piracy")
 
-    @ui.button(label="slurs", style=discord.ButtonStyle.primary)
-    async def slurs(self, button: ui.Button, interaction: discord.Interaction):
-        if not self.check(interaction):
-            return
+#     @ui.button(label="slurs", style=discord.ButtonStyle.primary)
+#     async def slurs(self, button: ui.Button, interaction: discord.Interaction):
+#         if not self.check(interaction):
+#             return
 
-        await warn(self.ctx, self.target_member, "slurs")
+#         await warn(self.ctx, self.target_member, "slurs")
 
-    @ui.button(label="filter bypass", style=discord.ButtonStyle.primary)
-    async def filter_bypass(self, button: ui.Button, interaction: discord.Interaction):
-        if not self.check(interaction):
-            return
+#     @ui.button(label="filter bypass", style=discord.ButtonStyle.primary)
+#     async def filter_bypass(self, button: ui.Button, interaction: discord.Interaction):
+#         if not self.check(interaction):
+#             return
 
-        await warn(self.ctx, self.target_member, "filter bypass")
+#         await warn(self.ctx, self.target_member, "filter bypass")
 
-    @ui.button(label="Other...", style=discord.ButtonStyle.primary)
-    async def other(self, button: ui.Button, interaction: discord.Interaction):
-        if not self.check(interaction):
-            return
+#     @ui.button(label="Other...", style=discord.ButtonStyle.primary)
+#     async def other(self, button: ui.Button, interaction: discord.Interaction):
+#         if not self.check(interaction):
+#             return
 
-        reason = await self.prompt_reason(interaction)
-        if reason and reason is not None:
-            await warn(self.ctx, self.target_member, reason)
+#         reason = await self.prompt_reason(interaction)
+#         if reason and reason is not None:
+#             await warn(self.ctx, self.target_member, reason)
 
-    @ui.button(emoji="❌", label="cancel", style=discord.ButtonStyle.primary)
-    async def cancel(self, button: ui.Button, interaction: discord.Interaction):
-        if not self.check(interaction):
-            return
-        await self.ctx.send_warning("Cancelled")
+#     @ui.button(emoji="❌", label="cancel", style=discord.ButtonStyle.primary)
+#     async def cancel(self, button: ui.Button, interaction: discord.Interaction):
+#         if not self.check(interaction):
+#             return
+#         await self.ctx.send_warning("Cancelled")
 
-    async def prompt_reason(self, interaction: discord.Interaction):
-        prompt_data = PromptData(value_name="Reason", 
-                                        description="Reason for warn?",
-                                        convertor=str,
-                                        timeout=30
-                                        )
-        await interaction.response.defer()
+#     async def prompt_reason(self, interaction: discord.Interaction):
+#         prompt_data = PromptData(value_name="Reason", 
+#                                         description="Reason for warn?",
+#                                         convertor=str,
+#                                         timeout=30
+#                                         )
+#         await interaction.response.defer()
 
-        reason = await self.ctx.prompt(prompt_data)
-        return reason
+#         reason = await self.ctx.prompt(prompt_data)
+#         return reason
 
 
 class ModViewReport(ui.View):
