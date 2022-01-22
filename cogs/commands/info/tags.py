@@ -13,14 +13,14 @@ from utils.autocompleters import tags_autocomplete
 from utils.config import cfg
 from utils.context import ChromeyContext, PromptData
 from utils.logger import logger
-from utils.menu import Menu
+from utils.views.menu import Menu
 from utils.message_cooldown import MessageTextBucket
 from utils.permissions.checks import (PermissionsFailure,
                                       nerds_and_up, whisper)
 from utils.permissions.slash_perms import slash_perms
 
 
-async def format_tag_page(entries, all_pages, current_page, ctx):
+def format_tag_page(_, entries, current_page, all_pages):
     embed = discord.Embed(title=f'Tags', color=discord.Color.blurple())
     for tag in entries:
         res = tag.content[:50] + "..." if len(tag.content) > 50 else tag.content
@@ -69,17 +69,55 @@ class Tags(commands.Cog):
         
         await ctx.respond_or_edit(response, file=file)
 
-    def tag_response(self, tag, args):
-        pattern = re.compile(r"((http|https)\:\/\/)?[a-zA-Z0-9\.\/\?\:@\-_=#]+\.([a-zA-Z]){2,6}([a-zA-Z0-9\.\&\/\?\:@\-_=#])*")
-        if (pattern.match(tag.content)):
-            response = tag.content + "%20".join(args.split(" "))
-        else:
-            response = tag.content + " " + args
-        return response
+    @whisper()
+    @slash_command(guild_ids=[cfg.guild_id], description="List all tags")
+    async def taglist(self, ctx: ChromeyContext):
+        """List all tags
+        """
+
+        _tags = sorted(guild_service.get_guild().tags, key=lambda tag: tag.name)
+
+        if len(_tags) == 0:
+            raise commands.BadArgument("There are no tags defined.")
+
+        menu = Menu(ctx, _tags, per_page=12, page_formatter=format_tag_page, whisper=ctx.whisper)
+        await menu.start()
+
+    tags = discord.SlashCommandGroup("tags", "Interact with tags", guild_ids=[cfg.guild_id], permissions=slash_perms.nerds_and_up())
+
+    @whisper()
+    @slash_command(guild_ids=[cfg.guild_id], description="Search for a tag by name")
+    async def search(self, ctx: ChromeyContext, command_name:str):
+        """Search through commands for matching name by keyword
+        
+        Example usage
+        --------------
+        !search cros
+        """
+        
+        # ensure command name doesn't have illegal chars
+        pattern = re.compile("^[a-zA-Z0-9_-]*$")
+        if (not pattern.match(command_name)):
+            raise commands.BadArgument("The command name should only be alphanumeric characters with `_` and `-`!\nExample usage`!search cam-sucks`")
+            
+        # always store command name as lowercase for case insensitivity
+        command_name = command_name.lower()
+
+        res = sorted(guild_service.get_guild().tags, key=lambda tag: tag.name)
+        match = [ command for command in res if command_name in command.name ]
+
+        if len(match) == 0:
+            raise commands.BadArgument(f'No commands found with that name!')
+        #send paginated results
+        
+        menu = Menu(res, ctx.channel, per_page=6,
+                    format_page=format_tag_page, interaction=True, ctx=ctx, whisper=ctx.whisper)
+
+        await menu.start()
 
     @nerds_and_up()
-    @slash_command(guild_ids=[cfg.guild_id], description="Add a new tag", permissions=slash_perms.nerds_and_up())
-    async def addtag(self, ctx: ChromeyContext, name: str, args: Option(bool)) -> None:
+    @tags.command(guild_ids=[cfg.guild_id], description="Add a new tag")
+    async def add(self, ctx: ChromeyContext, name: str, args: Option(bool)) -> None:
         """Add a tag. Optionally attach an image. (Genius only)
 
         Example usage
@@ -92,6 +130,7 @@ class Tags(commands.Cog):
             "Name of the tag"
 
         """
+
 
         pattern = re.compile("^[a-zA-Z0-9_-]*$")
         if (not pattern.match(name)):
@@ -149,8 +188,8 @@ class Tags(commands.Cog):
         await ctx.respond(f"Added new tag!", file=_file or discord.utils.MISSING, embed=await self.prepare_tag_embed(tag))
 
     @nerds_and_up()
-    @slash_command(guild_ids=[cfg.guild_id], description="Delete a tag", permissions=slash_perms.nerds_and_up())
-    async def deltag(self, ctx: ChromeyContext, _id: int):
+    @tags.command(guild_ids=[cfg.guild_id], description="Delete a tag")
+    async def delete(self, ctx: ChromeyContext, _id: int):
         """Delete tag (geniuses only)
 
         Example usage
@@ -173,52 +212,6 @@ class Tags(commands.Cog):
 
         guild_service.remove_tag(_id)
         await ctx.send_warning(f"Deleted tag `{tag.name}`.", delete_after=5)
-
-    @whisper()
-    @slash_command(guild_ids=[cfg.guild_id], description="List all tags")
-    async def taglist(self, ctx: ChromeyContext):
-        """List all tags
-        """
-
-        tags = sorted(guild_service.get_guild().tags, key=lambda tag: tag.name)
-
-        if len(tags) == 0:
-            raise commands.BadArgument("There are no tags defined.")
-
-        menu = Menu(tags, ctx.channel, per_page=12,
-                    format_page=format_tag_page, interaction=True, ctx=ctx, whisper=ctx.whisper)
-
-        await menu.start()
-
-    @whisper()
-    @slash_command(guild_ids=[cfg.guild_id], description="Search for a tag by name")
-    async def search(self, ctx: ChromeyContext, command_name:str):
-        """Search through commands for matching name by keyword
-        
-        Example usage
-        --------------
-        !search cros
-        """
-        
-        # ensure command name doesn't have illegal chars
-        pattern = re.compile("^[a-zA-Z0-9_-]*$")
-        if (not pattern.match(command_name)):
-            raise commands.BadArgument("The command name should only be alphanumeric characters with `_` and `-`!\nExample usage`!search cam-sucks`")
-            
-        # always store command name as lowercase for case insensitivity
-        command_name = command_name.lower()
-
-        res = sorted(guild_service.get_guild().tags, key=lambda tag: tag.name)
-        match = [ command for command in res if command_name in command.name ]
-
-        if len(match) == 0:
-            raise commands.BadArgument(f'No commands found with that name!')
-        #send paginated results
-        
-        menu = Menu(res, ctx.channel, per_page=6,
-                    format_page=format_tag_page, interaction=True, ctx=ctx, whisper=ctx.whisper)
-
-        await menu.start()
 
     async def prepare_tag_embed(self, tag):
         """Given a tag object, prepare the appropriate embed for it
@@ -248,8 +241,8 @@ class Tags(commands.Cog):
     @search.error
     @tag.error
     @taglist.error
-    @deltag.error
-    @addtag.error
+    @delete.error
+    @add.error
     async def info_error(self,  ctx: ChromeyContext, error):
         if isinstance(error, discord.ApplicationCommandInvokeError):
             error = error.original
