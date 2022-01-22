@@ -69,6 +69,14 @@ class Tags(commands.Cog):
         
         await ctx.respond_or_edit(response, file=file)
 
+    def tag_response(self, tag, args):
+        pattern = re.compile(r"((http|https)\:\/\/)?[a-zA-Z0-9\.\/\?\:@\-_=#]+\.([a-zA-Z]){2,6}([a-zA-Z0-9\.\&\/\?\:@\-_=#])*")
+        if (pattern.match(tag.content)):
+            response = tag.content + "%20".join(args.split(" "))
+        else:
+            response = tag.content + " " + args
+        return response
+
     @whisper()
     @slash_command(guild_ids=[cfg.guild_id], description="List all tags")
     async def taglist(self, ctx: ChromeyContext):
@@ -130,7 +138,6 @@ class Tags(commands.Cog):
             "Name of the tag"
 
         """
-
 
         pattern = re.compile("^[a-zA-Z0-9_-]*$")
         if (not pattern.match(name)):
