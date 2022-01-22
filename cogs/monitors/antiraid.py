@@ -179,9 +179,10 @@ class AntiRaidMonitor(commands.Cog):
             await self.report_possible_raid_phrase(message)
 
     async def detect_scam_link(self, message: discord.Message):
-       # check if message contains @everyone or @here
-        if "@everyone" not in message.content and "@here" not in message.content:
-            return False
+        # check if message contains @everyone or @here
+        if ("@everyone" not in message.content and "@here" not in message.content) and \
+            ("take it" not in message.content and "airdrop" not in message.content and "nitro" not in message.content):
+                return False
 
         # use regex to find if message contains url
         url = re.search(r'(https?://\S+)', message.content)
@@ -397,21 +398,19 @@ class AntiRaidMonitor(commands.Cog):
             if channel is None:
                 continue
             
-            default_role = guild.default_role
-            member_plus = guild.get_role(db_guild.role_memberplus)   
-            
-            default_perms = channel.overwrites_for(default_role)
-            memberplus_perms = channel.overwrites_for(member_plus)
+        default_role = guild.default_role
+  
+        default_perms = channel.overwrites_for(default_role)
 
-            if default_perms.send_messages is None and memberplus_perms.send_messages is None:
-                default_perms.send_messages = False
-                memberplus_perms.send_messages = True
+        if default_perms.send_messages is True:
+            default_perms.send_messages = False
 
-                try:
-                    await channel.set_permissions(default_role, overwrite=default_perms, reason="Locked!")
-                    await channel.set_permissions(member_plus, overwrite=memberplus_perms, reason="Locked!")
-                except Exception:
-                    pass
+        
+            try:
+                await channel.set_permissions(default_role, overwrite=default_perms, reason="Locked!")
+                return True
+            except Exception:
+                return
 
 
 def setup(bot):

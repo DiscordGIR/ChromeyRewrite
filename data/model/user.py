@@ -5,7 +5,8 @@ class User(mongoengine.Document):
     is_muted            = mongoengine.BooleanField(default=False, required=True)
     offline_report_ping = mongoengine.BooleanField(default=False, required=True)
     raid_verified       = mongoengine.BooleanField(default=False, required=True)
-    
+    sticky_roles        = mongoengine.ListField(default=[])
+
     karma                  = mongoengine.IntField(required=True, default=0)
     karma_received_history = mongoengine.ListField(default=[])
     karma_given_history    = mongoengine.ListField(default=[])

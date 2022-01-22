@@ -23,7 +23,7 @@ class Guild(mongoengine.Document):
     channel_support           = mongoengine.IntField()
     channel_deals             = mongoengine.IntField()
 
-    emoji_logging_webhook     = mongoengine.IntField()
+    emoji_logging_webhook     = mongoengine.StringField()
     filter_excluded_channels  = mongoengine.ListField(default=[])
     filter_excluded_guilds    = mongoengine.ListField(default=[253908290105376768])
     filter_words              = mongoengine.EmbeddedDocumentListField(FilterWord, default=[])

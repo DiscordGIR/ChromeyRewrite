@@ -17,7 +17,7 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 initial_extensions = [
-        # "cogs.monitors.filter",
+        "cogs.monitors.filter",
         # "cogs.monitors.antiraid",
         "cogs.commands.info.stats",
         "cogs.commands.info.help",
@@ -29,11 +29,10 @@ initial_extensions = [
         "cogs.commands.mod.antiraid",
         "cogs.commands.mod.filter",
         "cogs.commands.mod.modactions",
-        # "cogs.commands.mod.modutils",
-        # "cogs.monitors.birthday",
-        # "cogs.monitors.logging",
-        # "cogs.monitors.role_assignment_buttons",
-        # "cogs.monitors.sticky_roles",
+        "cogs.commands.mod.modutils",
+        "cogs.monitors.logging",
+        "cogs.monitors.role_assignment_buttons",
+        "cogs.monitors.sticky_roles",
 ]
 
 intents = discord.Intents.default()

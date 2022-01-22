@@ -52,8 +52,6 @@ class ModUtils(commands.Cog):
         embed = discord.Embed(title="Transferred profile")
         embed.description = f"We transferred {oldmember.mention}'s profile to {newmember.mention}"
         embed.color = discord.Color.blurple()
-        embed.add_field(name="Level", value=u.level)
-        embed.add_field(name="XP", value=u.xp)
         embed.add_field(name="Cases", value=f"We tranferred {case_count} cases")
 
         await ctx.respond(embed=embed)
@@ -62,100 +60,6 @@ class ModUtils(commands.Cog):
             await newmember.send(f"{ctx.author} has transferred your profile from {oldmember}", embed=embed)
         except Exception:
             pass
-
-    @slash_command(guild_ids=[cfg.guild_id], description="Ban a user from birthdays", permissions=slash_perms.mod_and_up())
-    async def birthdayexclude(self, ctx: ChromeyContext, user: discord.Member):
-        if user.id == self.bot.user.id:
-            await ctx.send_error("You can't call that on me :(")
-            raise commands.BadArgument("You can't call that on me :(")
-        
-        results = user_service.get_user(user.id)
-        results.birthday_excluded = True
-        results.birthday = None
-        results.save()
-
-        birthday_role = ctx.guild.get_role(guild_service.get_guild().role_birthday)
-        if birthday_role is None:
-            return
-        
-        if birthday_role in user.roles:
-            await user.remove_roles(birthday_role)
-
-        await ctx.send_success(f"{user.mention} was banned from birthdays.")
-
-    @mod_and_up()
-    @slash_command(guild_ids=[cfg.guild_id], description="Remove a user's birthday", permissions=slash_perms.mod_and_up())
-    async def removebirthday(self, ctx: ChromeyContext, user: discord.Member):
-        if user.id == self.bot.user.id:
-            await ctx.send_error("You can't call that on me :(")
-            raise commands.BadArgument("You can't call that on me :(")
-
-        results = user_service.get_user(user.id)
-        results.birthday = None
-        results.save()
-
-        try:
-            ctx.tasks.cancel_unbirthday(user.id)
-        except Exception:
-            pass
-
-        birthday_role = ctx.guild.get_role(guild_service.get_guild().role_birthday)
-        if birthday_role is None:
-            return
-
-        if birthday_role in user.roles:
-            await user.remove_roles(birthday_role)
-
-        await ctx.send_success(f"{user.mention}'s birthday was removed.")
-
-    @mod_and_up()
-    @slash_command(guild_ids=[cfg.guild_id], description="Override a user's birthday", permissions=slash_perms.mod_and_up())
-    async def setbirthday(self, ctx: ChromeyContext, user: discord.Member, month: Option(str, choices=list(MONTH_MAPPING.keys())), date: Option(int, autocomplete=date_autocompleter)):
-        month = MONTH_MAPPING.get(month)
-        if month is None:
-            raise commands.BadArgument("You gave an invalid date")
-
-        month = month["value"]
-        
-        if user.id == self.bot.user.id:
-            await ctx.send_error("You can't call that on me :(")
-            raise commands.BadArgument("You can't call that on me :(")
-        
-        try:
-            datetime.datetime(year=2020, month=month, day=date, hour=12)
-        except ValueError:
-            raise commands.BadArgument("You gave an invalid date.")
-        
-
-        results = user_service.get_user(user.id)
-        results.birthday = [month, date]
-        results.save()
-
-        await ctx.send_success(f"{user.mention}'s birthday was set.")
-
-        if results.birthday_excluded:
-            return
-        
-        eastern = pytz.timezone('US/Eastern')
-        today = datetime.datetime.today().astimezone(eastern)
-        if today.month == month and today.day == date:
-            birthday_role = ctx.guild.get_role(guild_service.get_guild().role_birthday)
-            if birthday_role is None:
-                return
-            if birthday_role in user.roles:
-                return
-            now = datetime.datetime.now(eastern)
-            h = now.hour / 24
-            m = now.minute / 60 / 24
-
-            try:
-                time = now + datetime.timedelta(days=1-h-m)
-                ctx.tasks.schedule_remove_bday(user.id, time)
-            except Exception:
-                return
-
-            await user.add_roles(birthday_role)
-            await user.send(f"According to my calculations, today is your birthday! We've hiven you the {birthday_role} role for 24 hours.")
 
     @mod_and_up()
     @slash_command(guild_ids=[cfg.guild_id], description="Sayyyy", permissions=slash_perms.mod_and_up())
@@ -196,15 +100,6 @@ class ModUtils(commands.Cog):
         embed.add_field(name="Account creation date",
                         value=f"{format_dt(user.created_at, style='F')} ({format_dt(user.created_at, style='R')})")
 
-        if user_info.is_clem:
-            embed.add_field(
-                name="XP", value="*this user is clemmed*", inline=True)
-        else:
-            embed.add_field(
-                name="XP", value=f"{user_info.xp} XP", inline=True)
-            embed.add_field(
-                name="Level", value=f"Level {user_info.level}", inline=True)
-
         embed.add_field(
             name="Roles", value=roles if roles else "None", inline=False)
 
@@ -217,12 +112,35 @@ class ModUtils(commands.Cog):
 
         return embed
 
+    @mod_and_up()
+    @slash_command(guild_ids=[cfg.guild_id], description="Give a user the birthday role!", permissions=slash_perms.mod_and_up())
+    async def birthday(self, ctx: ChromeyContext, user: discord.Member):
+        if user.id == self.bot.user.id:
+            await ctx.message.add_reaction("🤔")
+            raise commands.BadArgument("You can't call that on me :(")
+
+        eastern = pytz.timezone('US/Eastern')
+        birthday_role = ctx.guild.get_role(guild_service.get_guild().role_birthday)
+        if birthday_role is None:
+            return
+        if birthday_role in user.roles:
+            return
+        now = datetime.datetime.now(eastern)
+
+        try:
+            time = now + datetime.timedelta(days=1)
+            ctx.tasks.schedule_remove_bday(user.id, time)
+        except:
+            raise commands.BadArgument("An error occured scheduling the job in the database.")
+
+        await user.add_roles(birthday_role)
+        await ctx.send_success(f"{user.mention}'s birthday was set.")
+        await user.send(f"According to my calculations, today is your birthday! We've given you the {birthday_role} role for 24 hours.")
+
     @say.error
     @rundown.error
     @transferprofile.error
-    @birthdayexclude.error
-    @removebirthday.error
-    @setbirthday.error
+    @birthday.error
     async def info_error(self,  ctx: ChromeyContext, error):
         if isinstance(error, ApplicationCommandInvokeError):
             error = error.original

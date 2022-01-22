@@ -99,7 +99,7 @@ class Logging(commands.Cog):
 
         webhook = db_guild.emoji_logging_webhook
         if webhook is None:
-            channel = member.guild.get_channel(db_guild.channel_emoji_log)
+            channel = member.guild.get_channel(db_guild.channel_private)
             if channel is None:
                 return
 
@@ -108,10 +108,10 @@ class Logging(commands.Cog):
             db_guild.save()
 
 
-        content = f"{reaction.emoji}\n\n{reaction.message.channel.mention} | [Link to message]({reaction.message.jump_url}) | **{member.id}**"
+        content = f"Reacted the {reaction.emoji} emote\n\n{reaction.message.channel.mention} | [Link to message]({reaction.message.jump_url}) | **{member.id}**"
         body = {
             "username": str(member),
-            "display_avatar": member.display_avatar,
+            "avatar_url": member.display_avatar,
             "content": content
         }
 

@@ -1,5 +1,5 @@
 import discord
-from discord.commands import Option, slash_command
+from discord.commands import Option 
 from discord.ext import commands
 
 import traceback
@@ -29,28 +29,43 @@ class RoleAssignButtons(commands.Cog):
 
             self.bot.add_view(view)
 
+    buttons = discord.SlashCommandGroup("buttons", "Interact with role buttons", guild_ids=[cfg.guild_id], permissions=slash_perms.admin_and_up())
+
     @admin_and_up()
-    @slash_command(guild_ids=[cfg.guild_id], description="Post the button role assignment message", permissions=slash_perms.admin_and_up())
-    async def postbuttonmessage(self, ctx: ChromeyContext):
+    @buttons.command(description="Post the button role assignment message")
+    async def post_message(self, ctx: ChromeyContext):
         # timeout is None because we want this view to be persistent
         channel = ctx.guild.get_channel(
             guild_service.get_guild().channel_reaction_roles)
         if channel is None:
             raise commands.BadArgument("Role assignment channel not found!")
 
+        prompt = PromptData(
+            value_name="description",
+            description="Please enter the content of the embed.",
+            convertor=str,
+            raw=True)
+        res = await ctx.prompt(prompt)
+
+        if res is None:
+            await ctx.send_warning("Cancelled.")
+            return
+
+        description, _ = res
+        
         embed = discord.Embed(
-            description="Click the buttons to opt-in to or opt-out of notifications of your choice. ", color=discord.Color.blurple())
+            description=description.replace("\\n", "\n"), color=discord.Color.blurple())
         await channel.send(embed=embed)
         await ctx.send_success(f"Posted in {channel.mention}!")
 
     @admin_and_up()
-    @slash_command(guild_ids=[cfg.guild_id], description="Prompt to add role assignment buttons to a message", permissions=slash_perms.admin_and_up())
-    async def setbuttons(self, ctx: ChromeyContext, message_id: str):
+    @buttons.command(name="set", description="Prompt to add role assignment buttons to a message")
+    async def _set(self, ctx: ChromeyContext, message_id: str):
         """Prompt to add multiple reaction roles to a message (admin only)
 
         Example usage
         -------------
-        !setbuttons <message ID>
+        /buttons set <message ID>
 
         Parameters
         ----------
@@ -110,13 +125,13 @@ class RoleAssignButtons(commands.Cog):
         await ctx.send_success(title="Reaction roles set!", description=resulting_reactions_list)
 
     @admin_and_up()
-    @slash_command(guild_ids=[cfg.guild_id], description="Add a new role assignment button to a message", permissions=slash_perms.admin_and_up())
-    async def addbutton(self, ctx: ChromeyContext, message_id: str):
+    @buttons.command(description="Add a new role assignment button to a message")
+    async def add(self, ctx: ChromeyContext, message_id: str):
         """Add one new reaction to a given message
 
         Example usage
         -------------
-        !addbutton <message ID>
+        /buttons add <message ID>
 
         Parameters
         ----------
@@ -218,13 +233,13 @@ class RoleAssignButtons(commands.Cog):
         return await ctx.prompt(prompt_role)
 
     @admin_and_up()
-    @slash_command(guild_ids=[cfg.guild_id], description="Move buttons from one message to another", permissions=slash_perms.admin_and_up())
-    async def movebuttons(self, ctx: ChromeyContext, before: Option(str, description="ID of the old message"), after: Option(str, description="ID of the new message")):
+    @buttons.command(description="Move buttons from one message to another")
+    async def move(self, ctx: ChromeyContext, before: Option(str, description="ID of the old message"), after: Option(str, description="ID of the new message")):
         """Move reactions from one message to another.
 
         Example use
         -----------
-        !movereactions <before message ID> <after message ID>
+        /buttons move <before message ID> <after message ID>
 
         Parameters
         ----------
@@ -279,8 +294,8 @@ class RoleAssignButtons(commands.Cog):
         await ctx.send_success(title="Reaction roles moved!", description=resulting_reactions_list)
 
     @admin_and_up()
-    @slash_command(guild_ids=[cfg.guild_id], description="Repost all buttons", permissions=slash_perms.admin_and_up())
-    async def repostbuttons(self, ctx: ChromeyContext):
+    @buttons.command(description="Repost all buttons")
+    async def repost(self, ctx: ChromeyContext):
         """Repost all reactions to messages with reaction roles (admin only)
         """
 
@@ -308,11 +323,11 @@ class RoleAssignButtons(commands.Cog):
 
         await ctx.send_success("Done!")
 
-    @movebuttons.error
-    @addbutton.error
-    @setbuttons.error
-    @postbuttonmessage.error
-    @repostbuttons.error
+    @move.error
+    @add.error
+    @_set.error
+    @post_message.error
+    @repost.error
     async def info_error(self,  ctx: ChromeyContext, error):
         if isinstance(error, discord.ApplicationCommandInvokeError):
             error = error.original
