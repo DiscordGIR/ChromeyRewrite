@@ -130,7 +130,7 @@ class Karma(commands.Cog):
         embed.description += f'**Current karma**: {m.karma}\n'
         embed.set_footer(
             text=f'Requested by {ctx.author}', icon_url=ctx.author.display_avatar)
-        await ctx.respond(embed=embed)
+        await ctx.respond(member.mention, embed=embed)
 
     @nerds_and_up()
     @karma.command()
@@ -194,7 +194,7 @@ class Karma(commands.Cog):
         embed.description += f'**Reason**: {reason}'
         embed.set_footer(
             text=f'Requested by {ctx.author}', icon_url=ctx.author.display_avatar)
-        await ctx.respond(embed=embed)
+        await ctx.respond(member.mention, embed=embed)
 
     @nerds_and_up()
     @karma.command()
@@ -260,7 +260,7 @@ class Karma(commands.Cog):
         embed.description += f'**Reason**: {reason}'
         embed.set_footer(
             text=f'Requested by {ctx.author}', icon_url=ctx.author.display_avatar)
-        await ctx.respond(embed=embed)
+        await ctx.respond(member.mention, embed=embed)
 
     @nerds_and_up()
     @karma.command()
