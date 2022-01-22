@@ -151,4 +151,14 @@ class UserService:
         self.get_user(_id)
         User.objects(_id=_id).update_one(set__sticky_roles=roles)
 
+    def karma_rank(self, _id) -> list:
+        karma = self.get_user(_id).karma
+        users = User.objects().only('_id', 'karma')
+        overall = users().count()
+        rank = users(karma__gte=karma).count()
+        return karma, rank, overall
+
+    def leaderboard(self):
+        return User.objects[0:30].only('_id', 'karma').order_by('-karma', '-_id').select_related()
+
 user_service = UserService()
