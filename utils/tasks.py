@@ -204,7 +204,7 @@ async def remove_timeout(id: int) -> None:
     log.set_thumbnail(url=user.display_avatar)
 
     modlogs_chan = guild.get_channel(
-        db_guild.channel_public)
+        db_guild.channel_modlogs)
 
     await user.send(embed=log)
     await modlogs_chan.send(embed=log)

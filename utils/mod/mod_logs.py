@@ -41,7 +41,6 @@ def prepare_liftwarn_log(author, user, case):
     embed.color = discord.Color.blurple()
     embed.add_field(name="Member", value=f'{user} ({user.mention})', inline=True)
     embed.add_field(name="Mod", value=f'{author} ({author.mention})', inline=True)
-    embed.add_field(name="Decrease", value=case.punishment, inline=True)
     embed.add_field(name="Reason", value=case.lifted_reason, inline=True)
     embed.set_footer(text=f"Case #{case._id} | {user.id}")
     embed.timestamp = case.lifted_date

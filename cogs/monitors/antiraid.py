@@ -380,7 +380,7 @@ class AntiRaidMonitor(commands.Cog):
             else:
                 await user.guild.ban(discord.Object(id=user.id), reason="Raid")
                 
-            public_logs = user.guild.get_channel(db_guild.channel_public)
+            public_logs = user.guild.get_channel(db_guild.channel_modlogs)
             if public_logs:
                 log.remove_author()
                 log.set_thumbnail(url=user.display_avatar)

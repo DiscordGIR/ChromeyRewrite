@@ -408,7 +408,7 @@ class ModActions(commands.Cog):
 
     @mod_and_up()
     @slash_command(guild_ids=[cfg.guild_id], description="Edit case reason", permissions=slash_perms.mod_and_up())
-    async def editreason(self, ctx: ChromeyContext, user: Option(discord.Member), case_id: Option(int, autocomplete=liftwarn_autocomplete), new_reason: Option(str)) -> None:
+    async def editreason(self, ctx: ChromeyContext, user: Option(discord.Member), case_id: Option(str, autocomplete=liftwarn_autocomplete), new_reason: Option(str)) -> None:
         """Edits a case's reason and the embed in #public-mod-logs. (mod only)
 
         Example usage
@@ -450,7 +450,7 @@ class ModActions(commands.Cog):
         await notify_user(user, f"Your case was updated in {ctx.guild.name}.", log)
 
         modlogs_chan = ctx.guild.get_channel(
-            guild_service.get_guild().channel_public)
+            guild_service.get_guild().channel_modlogs)
 
         found = False
         async with ctx.typing():

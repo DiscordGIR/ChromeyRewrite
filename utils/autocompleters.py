@@ -1,7 +1,10 @@
 import json
+from typing import List
 
 import aiohttp
 from aiocache import cached
+from discord import OptionChoice
+from data.model.case import Case
 from data.services.guild_service import guild_service
 from data.services.user_service import user_service
 from discord.commands.context import AutocompleteContext
@@ -69,11 +72,11 @@ async def memes_autocomplete(ctx: AutocompleteContext):
 
 
 async def liftwarn_autocomplete(ctx: AutocompleteContext):
-    cases = [case._id for case in user_service.get_cases(
+    cases: List[Case] = [case for case in user_service.get_cases(
         int(ctx.options["user"])).cases if case._type == "WARN" and not case.lifted]
-    cases.sort(reverse=True)
+    cases.sort(key=lambda x: x._id, reverse=True)
 
-    return [case for case in cases if str(case).startswith(str(ctx.value))][:25]
+    return [OptionChoice(f"{case._id} - {case.reason}", str(case._id)) for case in cases if (not ctx.value or str(case._id).startswith(str(ctx.value)))][:25]
 
 
 async def filterwords_autocomplete(ctx: AutocompleteContext):
