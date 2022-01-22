@@ -111,8 +111,10 @@ class RaidPhraseReportActions(ui.View):
 
         self.ctx.author = self.ctx.message.author = interaction.user
         try:
-            await ban(self.ctx, self.target_member, reason="Raid phrase detected")
-            self.ctx.bot.ban_cache.ban(self.target_member.id)
+            await self.target_member.remove_timeout()
+            await ban(self.ctx, self.target_member, reason="Raid phrase detected", extra_text="We detected that your account was hacked as it posted a scam text in our server. We have banned and unbanned you to delete all of your scam messages. Please secure your account, then you can rejon using https://discord.gg/chromeos.")
+            await self.ctx.guild.unban(discord.Object(id=self.target_member.id))
+            self.ctx.bot.ban_cache.unban(self.target_member.id)
         except Exception:
             await self.ctx.send_warning("I wasn't able to ban them.", delete_after=5)
 

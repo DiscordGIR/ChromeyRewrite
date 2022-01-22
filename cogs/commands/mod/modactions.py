@@ -20,7 +20,7 @@ from utils.mod.mod_logs import (prepare_editreason_log, prepare_liftwarn_log, pr
                                 prepare_unban_log, prepare_unmute_log)
 from utils.mod.modactions_helpers import (
     add_ban_case, add_kick_case, notify_user, submit_mod_log)
-from utils.mod.global_modactions import warn
+from utils.mod.global_modactions import ban, warn
 from utils.permissions.checks import PermissionsFailure, always_whisper, mod_and_up
 from utils.permissions.converters import (
     mods_and_above_external_resolver, mods_and_above_member_resolver, user_resolver)
@@ -222,6 +222,16 @@ class ModActions(commands.Cog):
 
         await notify_user(member, f"You have been unmuted in {ctx.guild.name}", log)
         await submit_mod_log(ctx, db_guild, member, log)
+
+    @mod_and_up()
+    @slash_command(guild_ids=[cfg.guild_id], description="Soft ban a user", permissions=slash_perms.mod_and_up())
+    async def scam(self, ctx: ChromeyContext, user: Option(discord.Member, description="User to ban")):
+        user = await mods_and_above_external_resolver(ctx, user)
+
+        await ban(ctx, user, reason="Account hacked", extra_text="We detected that your account was hacked as it posted a scam text in our server. We have banned and unbanned you to delete all of your scam messages. Please secure your account, then you can rejon using https://discord.gg/chromeos.")
+        await ctx.guild.unban(discord.Object(id=user.id))
+        ctx.bot.ban_cache.unban(user.id)
+        await ctx.send_success("User has been banned and unbanned.")
 
     @mod_and_up()
     @slash_command(guild_ids=[cfg.guild_id], description="Ban a user", permissions=slash_perms.mod_and_up())
@@ -485,6 +495,7 @@ class ModActions(commands.Cog):
     @mute.error
     @liftwarn.error
     @unban.error
+    @scam.error
     @ban.error
     @warn.error
     @warn_rc.error

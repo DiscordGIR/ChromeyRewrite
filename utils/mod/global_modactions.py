@@ -115,7 +115,7 @@ async def unmute(ctx, member, reason: str = "No reason.") -> None:
     await submit_mod_log(ctx, db_guild, member, log)
 
 
-async def ban(ctx, user, reason="No reason."):
+async def ban(ctx, user, reason="No reason.", extra_text: str = ""):
     """Bans a user (mod only)
 
     Example usage
@@ -138,11 +138,7 @@ async def ban(ctx, user, reason="No reason."):
     log = await add_ban_case(ctx, user, reason, db_guild)
 
     if not member_is_external:
-        if cfg.ban_appeal_url is None:
-            await notify_user(user, f"You have been banned from {ctx.guild.name}", log)
-        else:
-            await notify_user(user, f"You have been banned from {ctx.guild.name}\n\nIf you would like to appeal your ban, please fill out this form: <{cfg.ban_appeal_url}>", log)
-
+        await notify_user(user, f"You have been banned from {ctx.guild.name}. {extra_text}", log)
         await user.ban(reason=reason)
     else:
         # hackban for user not currently in guild
