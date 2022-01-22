@@ -26,48 +26,7 @@ class UserService:
             user._id = id
             user.save()
         return user
-    
-    def leaderboard(self) -> list:
-        return User.objects[0:130].only('_id', 'xp').order_by('-xp', '-_id').select_related()
 
-    def leaderboard_rank(self, xp):
-        users = User.objects().only('_id', 'xp')
-        overall = users().count()
-        rank = users(xp__gte=xp).count()
-        return (rank, overall)
-    
-    def inc_points(self, _id: int, points: int) -> None:
-        """Increments the warnpoints by `points` of a user whose ID is given by `_id`.
-        If the user doesn't have a User document in the database, first create that.
-
-        Parameters
-        ----------
-        _id : int
-            The user's ID to whom we want to add/remove points
-        points : int
-            The amount of points to increment the field by, can be negative to remove points
-        """
-
-        # first we ensure this user has a User document in the database before continuing
-        self.get_user(_id)
-        User.objects(_id=_id).update_one(inc__warn_points=points)
-        
-    def inc_xp(self, id, xp):
-        """Increments user xp.
-        """
-
-        self.get_user(id)
-        User.objects(_id=id).update_one(inc__xp=xp)
-        u = User.objects(_id=id).first()
-        return (u.xp, u.level)
-
-    def inc_level(self, id) -> None:
-        """Increments user level.
-        """
-
-        self.get_user(id)
-        User.objects(_id=id).update_one(inc__level=1)
-    
     def get_cases(self, id: int) -> Cases:
         """Return the Document representing the cases of a user, whose ID is given by `id`
         If the user doesn't have a Cases document in the database, first create that.
@@ -109,22 +68,6 @@ class UserService:
         self.get_cases(_id)
         Cases.objects(_id=_id).update_one(push__cases=case)
 
-    def set_warn_kicked(self, _id: int) -> None:
-        """Set the `was_warn_kicked` field in the User object of the user, whose ID is given by `_id`,
-        to True. (this happens when a user reaches 400+ points for the first time and is kicked).
-        If the user doesn't have a User document in the database, first create that.
-
-        Parameters
-        ----------
-        _id : int
-            The user's ID who we want to set `was_warn_kicked` for.
-        """
-
-        # first we ensure this user has a User document in the database before continuing
-        self.get_user(_id)
-        User.objects(_id=_id).update_one(set__was_warn_kicked=True)
-
-
     def rundown(self, id: int) -> list:
         """Return the 3 most recent cases of a user, whose ID is given by `id`
         If the user doesn't have a Cases document in the database, first create that.
@@ -163,8 +106,6 @@ class UserService:
         u.save()
         
         u2 = self.get_user(oldmember)
-        u2.xp = 0
-        u2.level = 0
         u2.save()
         
         cases = self.get_cases(oldmember)

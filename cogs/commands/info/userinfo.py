@@ -59,7 +59,7 @@ def format_cases_page(ctx, entries, current_page, all_pages):
             else:
                 embed.add_field(name=f'{determine_emoji(case._type)} Case #{case._id}',
                                 value=f'**Reason**: {case.reason}\n**Moderator**: {case.mod_tag}\n**Warned on**: {formatted}', inline=True)
-        elif case._type == "MUTE" or case._type == "REMOVEPOINTS":
+        elif case._type == "MUTE":
             embed.add_field(name=f'{determine_emoji(case._type)} Case #{case._id}',
                             value=f'**{pun_map[case._type]}**: {case.punishment}\n**Reason**: {case.reason}\n**Moderator**: {case.mod_tag}\n**Time**: {formatted}', inline=True)
         elif case._type in pun_map:
@@ -79,7 +79,6 @@ pun_map = {
     "CLEM": "Clemmed",
     "UNBAN": "Unbanned",
     "MUTE": "Duration",
-    "REMOVEPOINTS": "Points removed"
 }
 
 
@@ -92,7 +91,6 @@ def determine_emoji(type):
         "WARN": "⚠️",
         "UNMUTE": "🔈",
         "LIFTWARN": "⚠️",
-        "REMOVEPOINTS": "⬇️",
         "CLEM": "👎"
     }
     return emoji_dict[type]
@@ -198,7 +196,7 @@ class UserInfo(commands.Cog):
         # users can only invoke on themselves if they aren't mods
         if not permissions.has(ctx.guild, ctx.author, 2) and user.id != ctx.author.id:
             raise PermissionsFailure(
-                f"You don't have permissions to check others' warnpoints.")
+                f"You don't have permissions to check others' cases.")
 
         # fetch user's cases from our database
         results = user_service.get_cases(user.id)

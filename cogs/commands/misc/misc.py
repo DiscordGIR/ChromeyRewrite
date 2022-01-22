@@ -213,16 +213,11 @@ class Misc(commands.Cog):
     @slash_command(guild_ids=[cfg.guild_id], description="Tag helpers, usable in #support once every 24 hours per user")
     async def helpers(self, ctx: ChromeyContext):
         """Tag helpers, usable in #support once every 24 hours per user"""
-        # TODO: this needs to be fixed.
         db_guild = guild_service.get_guild()
         if ctx.channel.id != db_guild.channel_support:
             raise commands.BadArgument(f'This command is only usable in <#{db_guild.channel_support}>!')
 
-        # obj = Object(ctx.interaction.user.id)
-        # obj.author = ctx.interaction
-        # obj.guild = ctx.interaction.guild
-
-        bucket = self.helpers_cooldown.get_bucket(...)
+        bucket = self.helpers_cooldown.get_bucket(ctx)
         current = datetime.datetime.now().replace(tzinfo=datetime.timezone.utc).timestamp()
         if bucket.update_rate_limit(current):
             raise commands.BadArgument("This command is on cooldown.")

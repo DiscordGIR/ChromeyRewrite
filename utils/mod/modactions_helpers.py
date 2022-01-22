@@ -62,7 +62,7 @@ async def notify_user(user, text, log):
     return True
 
 
-async def notify_user_warn(ctx: ChromeyContext, user: discord.User, db_user, db_guild, cur_points: int, log):
+async def notify_user_warn(ctx: ChromeyContext, user: discord.User, log):
     """Notifies a specified user about a warn
 
     Parameters
@@ -71,47 +71,15 @@ async def notify_user_warn(ctx: ChromeyContext, user: discord.User, db_user, db_
         "Bot context"
     user : discord.Member
         "User to notify"
-    db_user
-        "User DB"
-    db_guild
-        "Guild DB"
-    cur_points : int
-        "Number of points the user currently has"
     log : discord.Embed
         "Embed to send"
     """
-    log_kickban = None
-    dmed = True
 
-    if cur_points >= 600:
-        # automatically ban user if more than 600 points
-
-        if cfg.ban_appeal_url is None:
-            dmed = await notify_user(user, f"You were banned from {ctx.guild.name} for reaching 600 or more points.", log)
-        else:
-            dmed = await notify_user(user, f"You were banned from {ctx.guild.name} for reaching 600 or more points.\n\nIf you would like to appeal your ban, please fill out this form: <{cfg.ban_appeal_url}>", log)
-
-        log_kickban = await add_ban_case(ctx, user, "600 or more warn points reached.", db_guild)
-        await user.ban(reason="600 or more warn points reached.")
-        ctx.bot.ban_cache.ban(user.id)
-    elif cur_points >= 400 and not db_user.was_warn_kicked and isinstance(user, discord.Member):
-        # kick user if >= 400 points and wasn't previously kicked
-        user_service.set_warn_kicked(user.id)
-
-        dmed = await notify_user(user, f"You were kicked from {ctx.guild.name} for reaching 400 or more points. Please note that you will be banned at 600 points.", log)
-        log_kickban = await add_kick_case(ctx, user, "400 or more warn points reached.", db_guild)
-        await user.kick(reason="400 or more warn points reached.")
-    else:
-        if isinstance(user, discord.Member):
-            dmed = await notify_user(user, f"You were warned in {ctx.guild.name}. Please note that you will be kicked at 400 points and banned at 600 points.", log)
-
-    if log_kickban:
-        await submit_public_log(ctx, db_guild, user, log_kickban)
-
-    return dmed
+    if isinstance(user, discord.Member):
+        await notify_user(user, f"You were warned in {ctx.guild.name}.", log)
 
 
-async def submit_public_log(ctx: ChromeyContext, db_guild: Guild, user: Union[discord.Member, discord.User], log, dmed: bool = None):
+async def submit_mod_log(ctx: ChromeyContext, db_guild: Guild, user: Union[discord.Member, discord.User], log):
     """Submits a public log
 
     Parameters
@@ -124,20 +92,15 @@ async def submit_public_log(ctx: ChromeyContext, db_guild: Guild, user: Union[di
         "User DB"
     db_guild
         "Guild DB"
-    cur_points : int
-        "Number of points the user currently has"
     log : discord.Embed
         "Embed to send"
     """
-    public_chan = ctx.guild.get_channel(
-        db_guild.channel_public)
-    if public_chan:
+    modlogs_chan = ctx.guild.get_channel(
+        db_guild.channel_modlogs)
+    if modlogs_chan:
         log.remove_author()
         log.set_thumbnail(url=user.display_avatar)
-        if dmed is not None:
-            await public_chan.send(user.mention if not dmed else "", embed=log)
-        else:
-            await public_chan.send(embed=log)
+        await modlogs_chan.send(embed=log)
 
 
 async def add_ban_case(ctx: ChromeyContext, user: discord.User, reason, db_guild: Guild = None):

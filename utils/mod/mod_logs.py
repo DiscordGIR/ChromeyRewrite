@@ -18,8 +18,7 @@ def prepare_warn_log(author, user, case):
     embed.color = discord.Color.orange()
     embed.add_field(name="Member", value=f'{user} ({user.mention})', inline=True)
     embed.add_field(name="Mod", value=f'{author} ({author.mention})', inline=True)
-    embed.add_field(name="Increase", value=case.punishment, inline=True)
-    embed.add_field(name="Reason", value=case.reason, inline=True)
+    embed.add_field(name="Reason", value=case.reason, inline=False)
     embed.set_footer(text=f"Case #{case._id} | {user.id}")
     embed.timestamp = case.date
     return embed
@@ -70,30 +69,6 @@ def prepare_editreason_log(author, user, case, old_reason):
     embed.add_field(name="Mod", value=f'{author} ({author.mention})', inline=True)
     embed.add_field(name="Old reason", value=old_reason, inline=False)
     embed.add_field(name="New Reason", value=case.reason, inline=False)
-    embed.set_footer(text=f"Case #{case._id} | {user.id}")
-    embed.timestamp = case.date
-    return embed
-
-def prepare_removepoints_log(author, user, case):
-    """Prepares log for point removal
-    
-    Parameters
-    ----------
-    author : discord.Member
-        "Mod who removed the points"
-    user : discord.Member
-        "Member whose points were removed"
-    case
-        "Case object"
-        
-    """
-    embed = discord.Embed(title="Member Points Removed")
-    embed.set_author(name=user, icon_url=user.display_avatar)
-    embed.color = discord.Color.blurple()
-    embed.add_field(name="Member", value=f'{user} ({user.mention})', inline=True)
-    embed.add_field(name="Mod", value=f'{author} ({author.mention})', inline=True)
-    embed.add_field(name="Decrease", value=case.punishment, inline=True)
-    embed.add_field(name="Reason", value=case.reason, inline=True)
     embed.set_footer(text=f"Case #{case._id} | {user.id}")
     embed.timestamp = case.date
     return embed

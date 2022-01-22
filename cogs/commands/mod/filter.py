@@ -39,15 +39,9 @@ def format_filter_page(_, entries, current_page, all_pages):
         title=f'Filtered words', color=discord.Color.blurple())
     for word in entries:
         notify_flag = ""
-        piracy_flag = ""
-        flags_check = ""
-        if word.notify is True:
+        if word.notify:
             notify_flag = "🔔"
-        if word.piracy:
-            piracy_flag = " 🏴‍☠️"
-        if word.notify is False and not word.piracy:
-            flags_check = "None"
-        embed.add_field(name=word.word, value=f"Bypassed by: {permissions.level_info(word.bypass)}\nFlags: {flags_check}{notify_flag}{piracy_flag}")
+        embed.add_field(name=word.word, value=f"Bypassed by: {permissions.level_info(word.bypass)}\nFlags: {notify_flag}")
     embed.set_footer(
         text=f"Page {current_page} of {len(all_pages)}")
     return embed
@@ -61,7 +55,7 @@ class Filters(commands.Cog):
     @always_whisper()
     @mod_and_up()
     @slash_command(guild_ids=[cfg.guild_id], description="Toggles bot pinging for reports when offline.", permissions=slash_perms.mod_and_up())
-    async def offlineping(self, ctx: ChromeyContext, val: Option(bool, required=False) = None):
+    async def offlineping(self, ctx: ChromeyContext, should_ping: Option(bool, description="Do you want to get pinged?", required=False) = None):
         """Toggles bot pinging for reports when offline
 
         Example usage
@@ -77,13 +71,13 @@ class Filters(commands.Cog):
 
         cur = user_service.get_user(ctx.author.id)
         
-        if val is None:
-            val = not cur.offline_report_ping 
+        if should_ping is None:
+            should_ping = not cur.offline_report_ping 
 
-        cur.offline_report_ping = val
+        cur.offline_report_ping = should_ping
         cur.save()
 
-        if val:
+        if should_ping:
             await ctx.send_success("You will now be pinged for reports when offline")
         else:
             await ctx.send_warning("You will no longer be pinged for reports when offline")
@@ -143,35 +137,6 @@ class Filters(commands.Cog):
         await menu.start()
 
     @mod_and_up()
-    @slash_command(guild_ids=[cfg.guild_id], description="Mark a word as piracy, will be ignored in #dev", permissions=slash_perms.mod_and_up())
-    async def piracy(self, ctx: ChromeyContext, *, word: Option(str, autocomplete=filterwords_autocomplete)):
-        """Marks a word as piracy, will be ignored in #dev (admin only)
-
-        Example usage
-        --------------
-        /piracy <word>
-
-        Parameters
-        ----------
-        word : str
-            "Word to mark as piracy"
-
-        """
-
-        word = word.lower()
-
-        words = guild_service.get_guild().filter_words
-        words = list(filter(lambda w: w.word.lower() == word.lower(), words))
-        
-        if len(words) > 0:
-            words[0].piracy = not words[0].piracy
-            guild_service.update_filtered_word(words[0])
-
-            await ctx.send_success("Marked as a piracy word!" if words[0].piracy else "Removed as a piracy word!")
-        else:
-            await ctx.send_warning("You must filter that word before it can be marked as piracy.", delete_after=5)
-
-    @mod_and_up()
     @_filter.command(description="Remove word from filter")
     async def remove(self, ctx: ChromeyContext, *, word: Option(str, autocomplete=filterwords_autocomplete)):
         """Removes a word from filter (admin only)
@@ -200,7 +165,7 @@ class Filters(commands.Cog):
 
     @admin_and_up()
     @slash_command(guild_ids=[cfg.guild_id], description="Whitelist a guild from invite filter", permissions=slash_perms.admin_and_up())
-    async def whitelist(self, ctx: ChromeyContext, id: str):
+    async def whitelist(self, ctx: ChromeyContext, id: Option(str, description="Guild ID to whitelist")):
         """Whitelists a guild from invite filter (admin only)
 
         Example usage
@@ -226,7 +191,7 @@ class Filters(commands.Cog):
 
     @admin_and_up()
     @slash_command(guild_ids=[cfg.guild_id], description="Blacklist a guild from invite filter ", permissions=slash_perms.admin_and_up())
-    async def blacklist(self, ctx: ChromeyContext, id: str):
+    async def blacklist(self, ctx: ChromeyContext, id: Option(str, description="Guild ID to blacklist")):
         """Blacklists a guild from invite filter (admin only)
 
         Example usage
@@ -294,7 +259,7 @@ class Filters(commands.Cog):
 
     @mod_and_up()
     @slash_command(guild_ids=[cfg.guild_id], description="Disabling enhanced filter checks on a word", permissions=slash_perms.mod_and_up())
-    async def falsepositive(self, ctx: ChromeyContext, *, word: str):
+    async def falsepositive(self, ctx: ChromeyContext, *, word: Option(str, autocomplete=filterwords_autocomplete)):
         """Disabling enhanced filter checks on a word (admin only)
 
         Example usage
@@ -323,7 +288,6 @@ class Filters(commands.Cog):
             await ctx.send_warning("That word is not filtered.", delete_after=5)  
             
     @falsepositive.error
-    @piracy.error
     @whitelist.error
     @blacklist.error
     @remove.error

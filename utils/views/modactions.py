@@ -23,28 +23,21 @@ class WarnView(ui.View):
         if not self.check(interaction):
             return
 
-        await warn(self.ctx, self.target_member, 50, "piracy")
+        await warn(self.ctx, self.target_member, "piracy")
 
     @ui.button(label="slurs", style=discord.ButtonStyle.primary)
     async def slurs(self, button: ui.Button, interaction: discord.Interaction):
         if not self.check(interaction):
             return
 
-        await warn(self.ctx, self.target_member, 50, "slurs")
+        await warn(self.ctx, self.target_member, "slurs")
 
     @ui.button(label="filter bypass", style=discord.ButtonStyle.primary)
     async def filter_bypass(self, button: ui.Button, interaction: discord.Interaction):
         if not self.check(interaction):
             return
 
-        await warn(self.ctx, self.target_member, 50, "filter bypass")
-
-    @ui.button(label="rule 5", style=discord.ButtonStyle.primary)
-    async def rule5(self, button: ui.Button, interaction: discord.Interaction):
-        if not self.check(interaction):
-            return
-
-        await warn(self.ctx, self.target_member, 50, "rule 5")
+        await warn(self.ctx, self.target_member, "filter bypass")
 
     @ui.button(label="Other...", style=discord.ButtonStyle.primary)
     async def other(self, button: ui.Button, interaction: discord.Interaction):
@@ -53,7 +46,7 @@ class WarnView(ui.View):
 
         reason = await self.prompt_reason(interaction)
         if reason and reason is not None:
-            await warn(self.ctx, self.target_member, 50, reason)
+            await warn(self.ctx, self.target_member, reason)
 
     @ui.button(emoji="❌", label="cancel", style=discord.ButtonStyle.primary)
     async def cancel(self, button: ui.Button, interaction: discord.Interaction):
@@ -141,12 +134,7 @@ class ModViewReport(ui.View):
             return
 
         if self.mod_action == ModViewReport.ModAction.WARN:
-            points = await self.prompt_for_points(reason, interaction)
-            if points is None:
-                await self.cleanup()
-                return
-
-            await warn(self.ctx, self.target_member, points, reason)
+            await warn(self.ctx, self.target_member, reason)
         else:
             await ban(self.ctx, self.target_member, reason)
             await self.ctx.message.delete()
@@ -166,12 +154,7 @@ class ModViewReport(ui.View):
         # self.ctx.member = self.ctx.author = self.mod
 
         if self.mod_action == ModViewReport.ModAction.WARN:
-            points = await self.prompt_for_points(reason, interaction)
-            if points is None:
-                await self.cleanup()
-                return
-
-            await warn(self.ctx, self.target_member, points, reason)
+            await warn(self.ctx, self.target_member, reason)
         else:
             # ban
             await ban(self.ctx, self.target_member, reason)
@@ -179,18 +162,6 @@ class ModViewReport(ui.View):
 
         await self.post_cleanup()
         # self.ctx.member = self.ctx.author = self.ctx.me
-
-    async def prompt_for_points(self, reason: str, interaction: discord.Interaction):
-        view = PointsView(self.mod)
-        temp = await self.ctx.bot.get_application_context(interaction)
-
-        if not temp.interaction.response.is_done():
-            await temp.interaction.response.defer()
-
-        await self.ctx.message.edit(embed=discord.Embed(description=f"Warning for `{reason}`. How many points, {self.mod.mention}?", color=discord.Color.blurple()), view=view)
-        await view.start(self.ctx.message)
-
-        return view.value
 
     async def prompt_for_reason(self, interaction: discord.Interaction):
         action = "warn" if self.mod_action == ModViewReport.ModAction.WARN else "ban"
@@ -221,61 +192,3 @@ class ModViewReport(ui.View):
             pass
         finally:
             self.stop()
-
-
-class PointsView(ui.View):
-    def __init__(self, mod: discord.Member):
-        super().__init__(timeout=15)
-        self.mod = mod
-        self.value = None
-
-    async def start(self, points_msg):
-        self.points_msg = points_msg
-        await self.wait()
-
-    def check(self, interaction: discord.Interaction):
-        if self.mod != interaction.user:
-            return False
-        return True
-
-    async def on_timeout(self) -> None:
-        try:
-            await self.points_msg.delete()
-        except:
-            pass
-
-    @ui.button(label="50 points", style=discord.ButtonStyle.primary)
-    async def fiddy(self, button: ui.Button, interaction: discord.Interaction):
-        if not self.check(interaction):
-            return
-
-        self.value = 50
-        await self.points_msg.delete()
-        self.stop()
-
-    @ui.button(label="100 points", style=discord.ButtonStyle.primary)
-    async def hunnit(self, button: ui.Button, interaction: discord.Interaction):
-        if not self.check(interaction):
-            return
-
-        self.value = 100
-        await self.points_msg.delete()
-        self.stop()
-
-    @ui.button(label="150 points", style=discord.ButtonStyle.primary)
-    async def hunnitfiddy(self, button: ui.Button, interaction: discord.Interaction):
-        if not self.check(interaction):
-            return
-
-        self.value = 150
-        await self.points_msg.delete()
-        self.stop()
-
-    @ui.button(label="200 points", style=discord.ButtonStyle.primary)
-    async def twohunnit(self, button: ui.Button, interaction: discord.Interaction):
-        if not self.check(interaction):
-            return
-
-        self.value = 200
-        await self.points_msg.delete()
-        self.stop()

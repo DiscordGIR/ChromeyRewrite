@@ -174,8 +174,6 @@ def prepare_embed(target: Union[discord.Message, discord.Member], word: str = No
     rd = user_service.rundown(member.id)
     rd_text = ""
     for r in rd:
-        if r._type == "WARN":
-            r.punishment += " points"
         rd_text += f"**{r._type}** - {r.punishment} - {r.reason} - {format_dt(r.date, style='R')}\n"
 
     embed = discord.Embed(title=title)
@@ -200,9 +198,6 @@ def prepare_embed(target: Union[discord.Message, discord.Member], word: str = No
         name="Join date", value=f"{format_dt(member.joined_at, style='F')} ({format_dt(member.joined_at, style='R')})", inline=True)
     embed.add_field(name="Created",
                     value=f"{format_dt(member.created_at, style='F')} ({format_dt(member.created_at, style='R')})", inline=True)
-
-    embed.add_field(name="Warn points",
-                    value=user_info.warn_points, inline=True)
 
     reversed_roles = member.roles
     reversed_roles.reverse()

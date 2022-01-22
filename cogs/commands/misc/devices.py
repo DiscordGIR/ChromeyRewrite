@@ -15,7 +15,7 @@ from utils.menu import Menu
 from utils.permissions.checks import PermissionsFailure
 
 
-async def format_devices_page(ctx, entries, current_page, all_pages):
+async def format_devices_page(_, entries, current_page, all_pages):
     embed = Embed(
         title=f'Search results', color=Color.blurple())
     for v in entries:

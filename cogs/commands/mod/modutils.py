@@ -54,7 +54,6 @@ class ModUtils(commands.Cog):
         embed.color = discord.Color.blurple()
         embed.add_field(name="Level", value=u.level)
         embed.add_field(name="XP", value=u.xp)
-        embed.add_field(name="Warnpoints", value=f"{u.warn_points} points")
         embed.add_field(name="Cases", value=f"We tranferred {case_count} cases")
 
         await ctx.respond(embed=embed)
@@ -64,62 +63,6 @@ class ModUtils(commands.Cog):
         except Exception:
             pass
 
-    @guild_owner_and_up()
-    @slash_command(guild_ids=[cfg.guild_id], description="Sets user's XP and Level to 0, freezes XP, sets warn points to 599", permissions=slash_perms.guild_owner_and_up())
-    async def clem(self, ctx: ChromeyContext, user: discord.Member):
-        if user.id == ctx.author.id:
-            await ctx.send_error("You can't call that on yourself.")
-            raise commands.BadArgument("You can't call that on yourself.")
-        if user.id == self.bot.user.id:
-            await ctx.send_error("You can't call that on me :(")
-            raise commands.BadArgument("You can't call that on me :(")
-
-        results = user_service.get_user(user.id)
-        results.is_clem = True
-        results.is_xp_frozen = True
-        results.warn_points = 599
-        results.save()
-
-        case = Case(
-            _id=guild_service.get_guild().case_id,
-            _type="CLEM",
-            mod_id=ctx.author.id,
-            mod_tag=str(ctx.author),
-            punishment=str(-1),
-            reason="No reason."
-        )
-
-        # incrememnt DB's max case ID for next case
-        guild_service.inc_caseid()
-        # add case to db
-        user_service.add_case(user.id, case)
-
-        await ctx.send_success(f"{user.mention} was put on clem.")
-
-    @admin_and_up()
-    @slash_command(guild_ids=[cfg.guild_id], description="Freeze a user's XP", permissions=slash_perms.admin_and_up())
-    async def freezexp(self, ctx: ChromeyContext, user: discord.Member):
-        results = user_service.get_user(user.id)
-        results.is_xp_frozen = not results.is_xp_frozen
-        results.save()
-
-        await ctx.send_success(f"{user.mention}'s xp was {'frozen' if results.is_xp_frozen else 'unfrozen'}.")
-
-    @mod_and_up()
-    @slash_command(guild_ids=[cfg.guild_id], description="", permissions=slash_perms.mod_and_up())
-    async def musicban(self, ctx: ChromeyContext, user: discord.Member):
-        if user.id == self.bot.user.id:
-            await ctx.send_error("You can't call that on me :(")
-            raise commands.BadArgument("You can't call that on me :(")
-
-        results = user_service.get_user(user.id)
-        results.is_music_banned = True
-        results.save()
-
-        await ctx.send_success(f"{user.mention} was banned from music.")
-
-
-    @mod_and_up()
     @slash_command(guild_ids=[cfg.guild_id], description="Ban a user from birthdays", permissions=slash_perms.mod_and_up())
     async def birthdayexclude(self, ctx: ChromeyContext, user: discord.Member):
         if user.id == self.bot.user.id:
@@ -232,8 +175,6 @@ class ModUtils(commands.Cog):
         rd = user_service.rundown(user.id)
         rd_text = ""
         for r in rd:
-            if r._type == "WARN":
-                r.punishment += " points"
             rd_text += f"**{r._type}** - {r.punishment} - {r.reason} - {format_dt(r.date, style='R')}\n"
 
         reversed_roles = user.roles
@@ -254,8 +195,6 @@ class ModUtils(commands.Cog):
                         value=f"{format_dt(user.joined_at, style='F')} ({format_dt(user.joined_at, style='R')})")
         embed.add_field(name="Account creation date",
                         value=f"{format_dt(user.created_at, style='F')} ({format_dt(user.created_at, style='R')})")
-        embed.add_field(name="Warn points",
-                        value=user_info.warn_points, inline=True)
 
         if user_info.is_clem:
             embed.add_field(
@@ -281,9 +220,6 @@ class ModUtils(commands.Cog):
     @say.error
     @rundown.error
     @transferprofile.error
-    @clem.error
-    @freezexp.error
-    @musicban.error
     @birthdayexclude.error
     @removebirthday.error
     @setbirthday.error

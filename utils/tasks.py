@@ -203,16 +203,11 @@ async def remove_timeout(id: int) -> None:
     log.remove_author()
     log.set_thumbnail(url=user.display_avatar)
 
-    public_chan = guild.get_channel(
+    modlogs_chan = guild.get_channel(
         db_guild.channel_public)
 
-    dmed = True
-    try:
-        await user.send(embed=log)
-    except Exception:
-        dmed = False
-
-    await public_chan.send(user.mention if not dmed else "", embed=log)
+    await user.send(embed=log)
+    await modlogs_chan.send(embed=log)
 
 
 def reminder_callback(id: int, reminder: str):
