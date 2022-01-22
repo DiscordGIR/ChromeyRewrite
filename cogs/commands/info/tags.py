@@ -95,7 +95,7 @@ class Tags(commands.Cog):
 
     @whisper()
     @slash_command(guild_ids=[cfg.guild_id], description="Search for a tag by name")
-    async def search(self, ctx: ChromeyContext, command_name:str):
+    async def search(self, ctx: ChromeyContext, command_name: Option(str, description="Name of tag to search for", autocomplete=tags_autocomplete)):
         """Search through commands for matching name by keyword
         
         Example usage
@@ -118,9 +118,7 @@ class Tags(commands.Cog):
             raise commands.BadArgument(f'No commands found with that name!')
         #send paginated results
         
-        menu = Menu(res, ctx.channel, per_page=6,
-                    format_page=format_tag_page, interaction=True, ctx=ctx, whisper=ctx.whisper)
-
+        menu = Menu(ctx, match, per_page=12, page_formatter=format_tag_page, whisper=ctx.whisper)
         await menu.start()
 
     @nerds_and_up()

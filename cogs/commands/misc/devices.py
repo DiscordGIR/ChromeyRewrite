@@ -15,7 +15,7 @@ from utils.menu import Menu
 from utils.permissions.checks import PermissionsFailure
 
 
-async def format_devices_page(entries, all_pages, current_page, ctx):
+async def format_devices_page(ctx, entries, current_page, all_pages):
     embed = Embed(
         title=f'Search results', color=Color.blurple())
     for v in entries:
@@ -95,8 +95,7 @@ class Devices(commands.Cog):
         if not search_results:
             raise commands.BadArgument("A board with that name was not found!")
 
-        menu = Menu(search_results, ctx.channel, per_page=8,
-                    format_page=format_devices_page, interaction=True, ctx=ctx, whisper=ctx.whisper)
+        menu = Menu(ctx, search_results, per_page=8, page_formatter=format_devices_page, whisper=ctx.whisper)
         await menu.start()
 
     @slash_command(guild_ids=[cfg.guild_id], description="Get ChromeOS version data for a specified Chromebook board name")
