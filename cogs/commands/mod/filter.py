@@ -9,7 +9,7 @@ from discord.ext import commands
 from utils.autocompleters import filterwords_autocomplete
 from utils.config import cfg
 from utils.context import ChromeyContext
-from utils.menu import Menu
+from utils.views.menu import Menu
 from utils.logger import logger
 from utils.permissions.checks import (PermissionsFailure, admin_and_up, always_whisper,
                                       mod_and_up)
@@ -17,7 +17,7 @@ from utils.permissions.permissions import permissions
 from utils.permissions.slash_perms import slash_perms
 
 
-async def format_filter_page(entries, all_pages, current_page, ctx):
+def format_filter_page(_, entries, current_page, all_pages):
     """Formats the page for the filtered words embed
     
     Parameters
@@ -57,6 +57,7 @@ class Filters(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+
     @always_whisper()
     @mod_and_up()
     @slash_command(guild_ids=[cfg.guild_id], description="Toggles bot pinging for reports when offline.", permissions=slash_perms.mod_and_up())
@@ -87,14 +88,16 @@ class Filters(commands.Cog):
         else:
             await ctx.send_warning("You will no longer be pinged for reports when offline")
 
-    @admin_and_up()
-    @slash_command(guild_ids=[cfg.guild_id], description="Add a word to filter", permissions=slash_perms.admin_and_up())
-    async def filter(self, ctx: ChromeyContext, notify: Option(bool, description="Whether to generate a report or not when this word is filtered"), bypass: Option(int, description="Level that bypasses this filter"), *, phrase: str) -> None:
+    _filter = discord.SlashCommandGroup("filter", "Interact with filter", guild_ids=[cfg.guild_id], permissions=slash_perms.mod_and_up())
+
+    @mod_and_up()
+    @_filter.command(description="Add a word to filter")
+    async def add(self, ctx: ChromeyContext, notify: Option(bool, description="Whether to generate a report or not when this word is filtered"), bypass: Option(int, description="Level that bypasses this filter"), *, phrase: str) -> None:
         """Adds a word to filter (admin only)
 
         Example usage
         -------------
-        /filter notify:<shouldnotify> bypass:<bypasslevel> <phrase>
+        /filter add notify:<shouldnotify> bypass:<bypasslevel> <phrase>
 
         Parameters
         ----------
@@ -104,7 +107,6 @@ class Filters(commands.Cog):
             "Level that can bypass this word"
         phrase : str
             "Phrase to filter"
-            
         """
 
         fw = FilterWord()
@@ -121,13 +123,13 @@ class Filters(commands.Cog):
         await ctx.send_success(title="Added new word to filter!", description=f"This filter {'will' if notify else 'will not'} ping for reports, level {bypass} can bypass it, and the phrase is `{phrase}`")
 
     @mod_and_up()
-    @slash_command(guild_ids=[cfg.guild_id], description="List filtered words", permissions=slash_perms.mod_and_up())
-    async def filterlist(self, ctx: ChromeyContext):
+    @_filter.command(description="List filtered words", name="list")
+    async def _list(self, ctx: ChromeyContext):
         """Lists filtered words (admin only)
         
         Example usage
         -------------
-        /filterlist
+        /filter list
         
         """
 
@@ -137,9 +139,7 @@ class Filters(commands.Cog):
         
         filters = sorted(filters, key=lambda word: word.word.lower())
 
-        menu = Menu(filters, ctx.channel, per_page=12,
-                    format_page=format_filter_page, interaction=True, ctx=ctx, whisper=False)
-
+        menu = Menu(ctx, filters, per_page=12, page_formatter=format_filter_page, whisper=False)
         await menu.start()
 
     @mod_and_up()
@@ -171,14 +171,14 @@ class Filters(commands.Cog):
         else:
             await ctx.send_warning("You must filter that word before it can be marked as piracy.", delete_after=5)
 
-    @admin_and_up()
-    @slash_command(guild_ids=[cfg.guild_id], description="Remove word from filter", permissions=slash_perms.admin_and_up())
-    async def filterremove(self, ctx: ChromeyContext, *, word: Option(str, autocomplete=filterwords_autocomplete)):
+    @mod_and_up()
+    @_filter.command(description="Remove word from filter")
+    async def remove(self, ctx: ChromeyContext, *, word: Option(str, autocomplete=filterwords_autocomplete)):
         """Removes a word from filter (admin only)
 
         Example usage
         --------------
-        /filterremove <word>
+        /filter remove <word>
 
         Parameters
         ----------
@@ -223,7 +223,6 @@ class Filters(commands.Cog):
             await ctx.send_success("Whitelisted.")
         else:
             await ctx.send_warning("That server is already whitelisted.", delete_after=5)
-            
 
     @admin_and_up()
     @slash_command(guild_ids=[cfg.guild_id], description="Blacklist a guild from invite filter ", permissions=slash_perms.admin_and_up())
@@ -293,8 +292,8 @@ class Filters(commands.Cog):
         else:
             await ctx.send_warning("That channel is not already ignored.", delete_after=5)
 
-    @admin_and_up()
-    @slash_command(guild_ids=[cfg.guild_id], description="Disabling enhanced filter checks on a word", permissions=slash_perms.admin_and_up())
+    @mod_and_up()
+    @slash_command(guild_ids=[cfg.guild_id], description="Disabling enhanced filter checks on a word", permissions=slash_perms.mod_and_up())
     async def falsepositive(self, ctx: ChromeyContext, *, word: str):
         """Disabling enhanced filter checks on a word (admin only)
 
@@ -327,9 +326,9 @@ class Filters(commands.Cog):
     @piracy.error
     @whitelist.error
     @blacklist.error
-    @filterremove.error
-    @filter.error
-    @filterlist.error
+    @remove.error
+    @add.error
+    @_list.error
     @offlineping.error
     @ignorechannel.error
     @unignorechannel.error

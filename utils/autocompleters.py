@@ -1,6 +1,4 @@
 import json
-import re
-from itertools import groupby
 
 import aiohttp
 from aiocache import cached

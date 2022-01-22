@@ -67,7 +67,7 @@ class Permissions:
                 and m == guild.owner)),
 
             5: (lambda guild, m: guild.id == cfg.guild_id
-                and m.id == cfg.owner_id),
+                and m.id == cfg.guild_owner_id),
         }
 
         self._permission_names = {
@@ -106,14 +106,14 @@ class Permissions:
             return []
         elif level > 3:
             # bot owner permission
-            return [CommandPermission(id=cfg.owner_id, type=2, permission=True)] + [ CommandPermission(id=cfg.guild_owner_id, type=2, permission=True)]
+            return [CommandPermission(id=cfg.guild_owner_id, type=2, permission=True)]
 
         if self._role_permission_mapping.get(level) is None:
             raise AttributeError(f"Permission level {level} not found")
 
         # generate role permissions up until Administrator (guild owner always has access!)
         return [CommandPermission(id=self._role_permission_mapping[_level], type=1, permission=True) for _level in range(level, 4)] \
-            + [CommandPermission(id=cfg.owner_id, type=2, permission=True) ] + [ CommandPermission(id=cfg.guild_owner_id, type=2, permission=True)]  # bot owner permission
+            + [CommandPermission(id=cfg.guild_owner_id, type=2, permission=True) ] + [ CommandPermission(id=cfg.guild_owner_id, type=2, permission=True)]  # bot owner permission
 
     def calculate_permissions(self, level: int):
         if self._permissions.get(level) is None:

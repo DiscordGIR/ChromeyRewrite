@@ -22,6 +22,7 @@ job_defaults = {
 
 BOT_GLOBAL = None
 
+
 class Tasks():
     """Job scheduler for unmute, using APScheduler"""
 
@@ -32,7 +33,7 @@ class Tasks():
         ----------
         bot : discord.Client
             instance of Discord client
-            
+
         """
 
         global BOT_GLOBAL
@@ -54,7 +55,7 @@ class Tasks():
             jobstores=jobstores, executors=executors, job_defaults=job_defaults, event_loop=bot.loop, timezone=utc)
         self.tasks.start()
 
-    def schedule_unmute(self, id: int, date: datetime) -> None:
+    def schedule_untimeout(self, id: int, date: datetime) -> None:
         """Create a task to unmute user given by ID `id`, at time `date`
 
         Parameters
@@ -63,10 +64,10 @@ class Tasks():
             User to unmute
         date : datetime.datetime
             When to unmute
-            
+
         """
 
-        self.tasks.add_job(unmute_callback, 'date', id=str(
+        self.tasks.add_job(untimeout_callback, 'date', id=str(
             id), next_run_time=date, args=[id], misfire_grace_time=3600)
 
     def schedule_remove_bday(self, id: int, date: datetime) -> None:
@@ -78,7 +79,7 @@ class Tasks():
             User to remove role
         date : datetime.datetime
             When to remove role
-            
+
         """
 
         self.tasks.add_job(remove_bday_callback, 'date', id=str(
@@ -91,19 +92,31 @@ class Tasks():
         ----------
         id : int
             User whose unmute task we want to cancel
-            
+
+        """
+
+        self.tasks.remove_job(str(id), 'default')
+
+    def cancel_unmute(self, id: int) -> None:
+        """When we manually unmute a user given by ID `id`, stop the task to unmute them.
+
+        Parameters
+        ----------
+        id : int
+            User whose unmute task we want to cancel
+
         """
 
         self.tasks.remove_job(str(id), 'default')
 
     def cancel_unbirthday(self, id: int) -> None:
         """When we manually unset the birthday of a user given by ID `id`, stop the task to remove the role.
-        
+
         Parameters
         ----------
         id : int
             User whose task we want to cancel
-            
+
         """
         self.tasks.remove_job(str(id+1), 'default')
 
@@ -119,7 +132,7 @@ class Tasks():
             Giveaway message ID
         date : datetime.datetime
             When to end the giveaway
-            
+
         """
 
         self.tasks.add_job(end_giveaway_callback, 'date', id=str(
@@ -136,14 +149,14 @@ class Tasks():
             What to remind them of
         date : datetime.datetime
             When to remind
-            
+
         """
 
         self.tasks.add_job(reminder_callback, 'date', id=str(
             id+random.randint(5, 100)), next_run_time=date, args=[id, reminder], misfire_grace_time=3600)
 
 
-def unmute_callback(id: int) -> None:
+def untimeout_callback(id: int) -> None:
     """Callback function for actually unmuting. Creates asyncio task
     to do the actual unmute.
 
@@ -151,75 +164,55 @@ def unmute_callback(id: int) -> None:
     ----------
     id : int
         User who we want to unmute
-        
+
     """
 
-    BOT_GLOBAL.loop.create_task(remove_mute(id))
+    BOT_GLOBAL.loop.create_task(remove_timeout(id))
 
 
-async def remove_mute(id: int) -> None:
+async def remove_timeout(id: int) -> None:
     """Remove the mute role of the user given by ID `id`
 
     Parameters
     ----------
     id : int
         User to unmute
-        
+
     """
 
     db_guild = guild_service.get_guild()
+
+    case = Case(
+        _id=db_guild.case_id,
+        _type="UNMUTE",
+        mod_id=BOT_GLOBAL.user.id,
+        mod_tag=str(BOT_GLOBAL.user),
+        reason="Temporary mute expired.",
+    )
+    guild_service.inc_caseid()
+    user_service.add_case(id, case)
+
     guild = BOT_GLOBAL.get_guild(cfg.guild_id)
-    if db_guild is not None:
-        mute_role = db_guild.role_mute
-        mute_role = guild.get_role(mute_role)
-        if mute_role is not None:
-            user = guild.get_member(id)
-            if user is not None:
-                await user.remove_roles(mute_role)
-                case = Case(
-                    _id=db_guild.case_id,
-                    _type="UNMUTE",
-                    mod_id=BOT_GLOBAL.user.id,
-                    mod_tag=str(BOT_GLOBAL.user),
-                    reason="Temporary mute expired.",
-                )
-                guild_service.inc_caseid()
-                user_service.add_case(user.id, case)
+    user: discord.Member = guild.get_member(id)
+    if user is None:
+        return
 
-                u = user_service.get_user(id=user.id)
-                u.is_muted = False
-                u.save()
+    await user.remove_timeout()
 
-                log = prepare_unmute_log(BOT_GLOBAL.user, user, case)
+    log = prepare_unmute_log(BOT_GLOBAL.user, user, case)
+    log.remove_author()
+    log.set_thumbnail(url=user.display_avatar)
 
-                log.remove_author()
-                log.set_thumbnail(url=user.display_avatar)
+    public_chan = guild.get_channel(
+        db_guild.channel_public)
 
-                public_chan = guild.get_channel(
-                    db_guild.channel_public)
+    dmed = True
+    try:
+        await user.send(embed=log)
+    except Exception:
+        dmed = False
 
-                dmed = True
-                try:
-                    await user.send(embed=log)
-                except Exception:
-                    dmed = False
-
-                await public_chan.send(user.mention if not dmed else "", embed=log)
-
-            else:
-                case = Case(
-                    _id=db_guild.case_id,
-                    _type="UNMUTE",
-                    mod_id=BOT_GLOBAL.user.id,
-                    mod_tag=str(BOT_GLOBAL.user),
-                    reason="Temporary mute expired.",
-                )
-                guild_service.inc_caseid()
-                user_service.add_case(id, case)
-
-                u = guild_service.get_user(id=id)
-                u.is_muted = False
-                u.save()
+    await public_chan.send(user.mention if not dmed else "", embed=log)
 
 
 def reminder_callback(id: int, reminder: str):
@@ -235,7 +228,7 @@ async def remind(id, reminder):
         ID of user to remind
     reminder : str
         body of reminder
-        
+
     """
 
     guild = BOT_GLOBAL.get_guild(cfg.guild_id)
@@ -251,7 +244,7 @@ async def remind(id, reminder):
         await member.send(embed=embed)
     except Exception:
         channel = guild.get_channel(
-            guild_service.get_guild().channel_offtopic)
+            guild_service.get_guild().channel_botspam)
         await channel.send(member.mention, embed=embed)
 
 
@@ -263,7 +256,7 @@ def remove_bday_callback(id: int) -> None:
     ----------
     id : int
         User who we want to unmute
-        
+
     """
 
     BOT_GLOBAL.loop.create_task(remove_bday(id))
@@ -276,7 +269,7 @@ async def remove_bday(id: int) -> None:
     ----------
     id : int
         User to remove role of
-        
+
     """
 
     db_guild = guild_service.get_guild()
@@ -303,7 +296,7 @@ def end_giveaway_callback(channel_id: int, message_id: int, winners: int) -> Non
         ID of the channel that the giveaway is in
     message_id : int
         Message ID of the giveaway
-        
+
     """
 
     BOT_GLOBAL.loop.create_task(end_giveaway(channel_id, message_id, winners))
@@ -319,7 +312,7 @@ async def end_giveaway(channel_id: int, message_id: int, winners: int) -> None:
         ID of the channel that the giveaway is in
     message_id : int
         Message ID of the giveaway
-        
+
     """
 
     guild = BOT_GLOBAL.get_guild(cfg.guild_id)
@@ -334,7 +327,8 @@ async def end_giveaway(channel_id: int, message_id: int, winners: int) -> None:
 
     embed = message.embeds[0]
     embed.set_footer(text="Ended")
-    embed.set_field_at(0, name="Time remaining", value="This giveaway has ended.")
+    embed.set_field_at(0, name="Time remaining",
+                       value="This giveaway has ended.")
     embed.timestamp = datetime.now()
     embed.color = discord.Color.default()
 

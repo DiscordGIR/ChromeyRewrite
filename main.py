@@ -7,7 +7,7 @@ from utils.context import ChromeyContext
 from utils.database import db
 from utils.logger import logger
 from utils.mod.filter import find_triggered_filters
-from utils.mod.modactions_helpers import BanCache
+from utils.misc import BanCache
 from utils.permissions.permissions import permissions
 from utils.tasks import Tasks
 
@@ -26,8 +26,8 @@ initial_extensions = [
         "cogs.commands.misc.admin",
         "cogs.commands.misc.devices",
         "cogs.commands.misc.misc",
-        # "cogs.commands.mod.antiraid",
-        # "cogs.commands.mod.filter",
+        "cogs.commands.mod.antiraid",
+        "cogs.commands.mod.filter",
         # "cogs.commands.mod.modactions",
         # "cogs.commands.mod.modutils",
         # "cogs.monitors.birthday",

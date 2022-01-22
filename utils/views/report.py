@@ -18,7 +18,7 @@ class ReportActions(ui.View):
         # await self.wait()
         
     def check(self, interaction: discord.Interaction):
-        if not permissions.has(self.target_member.guild, interaction.user, 2):
+        if not permissions.has(self.target_member.guild, interaction.user, 5):
             return False
         return True
 
@@ -78,7 +78,7 @@ class ReportActions(ui.View):
 
 class RaidPhraseReportActions(ui.View):
     def __init__(self, author: discord.Member, domain: str):
-        super().__init__()
+        super().__init__(timeout=None)
         self.target_member = author
         self.domain = domain
 
@@ -87,7 +87,7 @@ class RaidPhraseReportActions(ui.View):
         await self.wait()
         
     def check(self, interaction: discord.Interaction):
-        if not permissions.has(self.target_member.guild, interaction.user, 2):
+        if not permissions.has(self.target_member.guild, interaction.user, 5):
             return False
         return True
 
@@ -126,7 +126,7 @@ class RaidPhraseReportActions(ui.View):
 
 class SpamReportActions(ui.View):
     def __init__(self, author: discord.Member):
-        super().__init__()
+        super().__init__(timeout=None)
         self.target_member = author
 
     async def start(self, ctx: Context):
@@ -134,7 +134,7 @@ class SpamReportActions(ui.View):
         await self.wait()
         
     def check(self, interaction: discord.Interaction):
-        if not permissions.has(self.target_member.guild, interaction.user, 2):
+        if not permissions.has(self.target_member.guild, interaction.user, 5):
             return False
         return True
 
@@ -176,5 +176,7 @@ class SpamReportActions(ui.View):
         await interaction.response.defer()
         self.ctx.author = interaction.user
         duration = await self.ctx.prompt(prompt_data)
+        await self.target_member.remove_timeout()
+        self.ctx.bot.tasks.cancel_unmute(self.target_member.id)
         await mute(self.ctx, self.target_member, duration, reason="A moderator has reviewed your spam report.")
         await self.ctx.message.delete()

@@ -30,4 +30,4 @@ async def on_ready():
     logger.info(f'Commands have been cleared! Goodbye!')
     os._exit(0)
 
-bot.run(os.environ.get("CHROMEY_TOKEN"), reconnect=True)
+bot.run(os.environ.get("BLOO_TOKEN"), reconnect=True)

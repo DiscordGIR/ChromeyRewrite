@@ -304,26 +304,19 @@ class AntiRaid(commands.Cog):
             raise commands.BadArgument("Server is already unlocked or my permissions are wrong.")
 
     async def lock_unlock_channel(self,  ctx: ChromeyContext, channel, lock=None):
-        db_guild = guild_service.get_guild()
-        
         default_role = ctx.guild.default_role
-        member_plus = ctx.guild.get_role(db_guild.role_memberplus)   
         
         default_perms = channel.overwrites_for(default_role)
-        memberplus_perms = channel.overwrites_for(member_plus)
 
-        if lock and default_perms.send_messages is None and memberplus_perms.send_messages is None:
+        if lock and default_perms.send_messages is True:
             default_perms.send_messages = False
-            memberplus_perms.send_messages = True
-        elif lock is None and (not default_perms.send_messages) and memberplus_perms.send_messages:
-            default_perms.send_messages = None
-            memberplus_perms.send_messages = None
+        elif lock is None and (not default_perms.send_messages):
+            default_perms.send_messages = True
         else:
             return
-        
+ 
         try:
             await channel.set_permissions(default_role, overwrite=default_perms, reason="Locked!" if lock else "Unlocked!")
-            await channel.set_permissions(member_plus, overwrite=memberplus_perms, reason="Locked!" if lock else "Unlocked!")
             return True
         except Exception:
             return
