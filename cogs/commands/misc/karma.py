@@ -288,7 +288,7 @@ class Karma(commands.Cog):
 
     @nerds_and_up()
     @karma.command()
-    async def modhistory(self, ctx: ChromeyContext, member: discord.Member = None):
+    async def modhistory(self, ctx: ChromeyContext, mod: discord.Option(discord.Member, description="Mod to see action history of")):
         """History of a karma given by a user
 
         Example usage
@@ -301,12 +301,12 @@ class Karma(commands.Cog):
             Member whose karma history to get
         """
 
-        data = sorted(user_service.get_user(member.id).karma_given_history, key=lambda d: d['date'], reverse=True)
+        data = sorted(user_service.get_user(mod.id).karma_given_history, key=lambda d: d['date'], reverse=True)
 
         if (len(data) == 0):
             raise commands.BadArgument("This user had no history.")
 
-        ctx.invoker = member
+        ctx.invoker = mod
         menu = Menu(ctx, data, per_page=10, page_formatter=format_modhistory_page, whisper=False)
         await menu.start()
 

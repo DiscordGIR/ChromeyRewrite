@@ -63,7 +63,7 @@ async def mute(ctx, member, dur_seconds=None, reason="No reason."):
     user_service.add_case(member.id, case)
 
     log = prepare_mute_log(ctx.author, member, case)
-    await ctx.send(embed=log, delete_after=10)
+    await ctx.send(embed=log)
 
     log.remove_author()
     log.set_thumbnail(url=member.display_avatar)
@@ -109,7 +109,7 @@ async def unmute(ctx, member, reason: str = "No reason.") -> None:
 
     log = prepare_unmute_log(ctx.author, member, case)
 
-    await ctx.send(embed=log, delete_after=10)
+    await ctx.send(embed=log)
 
     await notify_user(member, f"You have been unmuted in {ctx.guild.name}", log)
     await submit_mod_log(ctx, db_guild, member, log)
@@ -145,7 +145,7 @@ async def ban(ctx, user, reason="No reason.", extra_text: str = ""):
         await ctx.guild.ban(discord.Object(id=user.id))
 
     ctx.bot.ban_cache.ban(user.id)
-    await ctx.send(embed=log, delete_after=10)
+    await ctx.send(embed=log)
     await submit_mod_log(ctx, db_guild, user, log)
 
 
@@ -178,7 +178,7 @@ async def warn(ctx, user, reason):
     # also send response in channel where command was called
     await notify_user_warn(ctx, user, log)
     if isinstance(ctx, ChromeyContext):
-        await ctx.respond(embed=log, delete_after=10)
+        await ctx.respond(embed=log)
     else:
-        await ctx.send(embed=log, delete_after=10)
+        await ctx.send(embed=log)
     await submit_mod_log(ctx, db_guild, user, log)

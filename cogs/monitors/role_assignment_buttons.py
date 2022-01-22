@@ -153,7 +153,7 @@ class RoleAssignButtons(commands.Cog):
         current =  guild_service.get_rero_mapping(str(message_id))
         if current is None:
             raise commands.BadArgument(
-                f"Message with ID {message_id} had no reactions set in database. Use `/setbuttons` first.")
+                f"Message with ID {message_id} had no reactions set in database. Use `/buttons set` first.")
 
         reaction_mapping = dict(current)
 

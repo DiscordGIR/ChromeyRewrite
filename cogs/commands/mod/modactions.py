@@ -51,7 +51,6 @@ class ModActions(commands.Cog):
         """
         user = await mods_and_above_external_resolver(ctx, user)
 
-
         await warn(ctx, user, reason)
 
     @mod_and_up()
@@ -100,7 +99,7 @@ class ModActions(commands.Cog):
 
         await member.kick(reason=reason)
 
-        await ctx.respond(embed=log, delete_after=10)
+        await ctx.respond(embed=log)
         await submit_mod_log(ctx, db_guild, member, log)
 
     @mod_and_up()
@@ -166,7 +165,7 @@ class ModActions(commands.Cog):
         user_service.add_case(member.id, case)
 
         log = prepare_mute_log(ctx.author, member, case)
-        await ctx.respond(embed=log, delete_after=10)
+        await ctx.respond(embed=log)
 
         log.remove_author()
         log.set_thumbnail(url=member.display_avatar)
@@ -218,7 +217,7 @@ class ModActions(commands.Cog):
 
         log = prepare_unmute_log(ctx.author, member, case)
 
-        await ctx.respond(embed=log, delete_after=10)
+        await ctx.respond(embed=log)
 
         await notify_user(member, f"You have been unmuted in {ctx.guild.name}", log)
         await submit_mod_log(ctx, db_guild, member, log)
@@ -279,7 +278,7 @@ class ModActions(commands.Cog):
             # hackban for user not currently in guild
             await ctx.guild.ban(discord.Object(id=user.id))
 
-        await ctx.respond(embed=log, delete_after=10)
+        await ctx.respond(embed=log)
         await submit_mod_log(ctx, db_guild, user, log)
 
     @mod_and_up()
@@ -330,7 +329,7 @@ class ModActions(commands.Cog):
         user_service.add_case(user.id, case)
 
         log = prepare_unban_log(ctx.author, user, case)
-        await ctx.respond(embed=log, delete_after=10)
+        await ctx.respond(embed=log)
 
         await submit_mod_log(ctx, db_guild, user, log)
 
@@ -413,7 +412,7 @@ class ModActions(commands.Cog):
         log = prepare_liftwarn_log(ctx.author, user, case)
         await notify_user(user, f"Your warn has been lifted in {ctx.guild}.", log)
 
-        await ctx.respond(embed=log, delete_after=10)
+        await ctx.respond(embed=log)
         await submit_mod_log(ctx, guild_service.get_guild(), user, log)
 
     @mod_and_up()
