@@ -319,7 +319,7 @@ class AntiRaidMonitor(commands.Cog):
                         if word.false_positive and word.word.lower() not in folded_message.split():
                             continue
 
-                        await self.raid_ban(message.author)
+                        await self.raid_ban(message.author, dm_user=True)
                         return True
         return False
 
@@ -372,7 +372,10 @@ class AntiRaidMonitor(commands.Cog):
             
             if dm_user:
                 try:
-                    await user.send(f"You were banned from {user.guild.name}.\n\nThis action was performed automatically. If you think this was a mistake, please send a message here: https://www.reddit.com/message/compose?to=%2Fr%2FJailbreak", embed=log)
+                    if reason == "Raid phrase detected":
+                        await user.send("We detected that your account was hacked as it posted a scam text in our server. We have banned and unbanned you to delete all of your scam messages. Please secure your account, then you can rejon using https://discord.gg/chromeos.", embed=log)
+                    else:
+                        await user.send(f"You were banned from {user.guild.name}.\n\nThis action was performed automatically. If you think this was a mistake, please send a message here: https://www.reddit.com/message/compose?to=%2Fr%2chromeos", embed=log)
                 except Exception:
                     pass
             
@@ -380,6 +383,9 @@ class AntiRaidMonitor(commands.Cog):
                 await user.ban(reason="Raid")
             else:
                 await user.guild.ban(discord.Object(id=user.id), reason="Raid")
+            
+            if reason == "Raid phrase detected":
+                await user.guild.unban(discord.Object(id=user.id), reason="Raid")
                 
             public_logs = user.guild.get_channel(db_guild.channel_modlogs)
             if public_logs:

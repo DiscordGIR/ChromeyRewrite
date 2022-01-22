@@ -159,7 +159,7 @@ class ModViewReport(ui.View):
             # ban
             await ban(self.ctx, self.target_member, reason)
             await self.ctx.message.delete()
-
+        await self.cleanup()
         await self.post_cleanup()
         # self.ctx.member = self.ctx.author = self.ctx.me
 

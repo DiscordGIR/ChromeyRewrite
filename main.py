@@ -18,7 +18,7 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 
 initial_extensions = [
         "cogs.monitors.filter",
-        # "cogs.monitors.antiraid",
+        "cogs.monitors.antiraid",
         "cogs.commands.info.stats",
         "cogs.commands.info.help",
         "cogs.commands.info.userinfo",

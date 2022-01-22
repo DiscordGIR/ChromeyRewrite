@@ -40,9 +40,6 @@ class Filter(commands.Cog):
         if permissions.has(message.guild, message.author, 3):
             return
         db_guild = guild_service.get_guild()
-        role_submod = message.guild.get_role(db_guild.role_sub_mod)
-        if role_submod is not None and role_submod in message.author.roles:
-            return
 
         # run through filters
         if message.content and await self.bad_word_filter(message, db_guild):
@@ -76,14 +73,8 @@ class Filter(commands.Cog):
         if not triggered_words:
             return
 
-        dev_role = message.guild.get_role(db_guild.role_dev)
-        
         triggered = False
         for word in triggered_words:
-            if word.piracy:
-                # ignore if it's a dev saying piracy in #development
-                if message.channel.id == db_guild.channel_development and dev_role in message.author.roles:
-                    continue
 
             if word.notify:
                 await self.delete(message)
@@ -139,11 +130,6 @@ class Filter(commands.Cog):
         SPOILER FILTER
         """
         if re.search(self.spoiler_filter, message.content, flags=re.S):
-            # ignore if dev in dev channel
-            dev_role = message.guild.get_role(db_guild.role_dev)
-            if message.channel.id == db_guild.channel_development and dev_role in message.author.roles:
-                return False
-
             await self.delete(message)
             return True
 
@@ -156,11 +142,9 @@ class Filter(commands.Cog):
         NEWLINE FILTER
         """
         if len(message.content.splitlines()) > 100:
-            dev_role = message.guild.get_role(db_guild.role_dev)
-            if not dev_role or dev_role not in message.author.roles:
-                await self.delete(message)
-                await self.ratelimit(message)
-                return True
+            await self.delete(message)
+            await self.ratelimit(message)
+            return True
 
         return False
 
