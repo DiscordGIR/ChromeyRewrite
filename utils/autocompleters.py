@@ -9,8 +9,6 @@ from data.services.guild_service import guild_service
 from data.services.user_service import user_service
 from discord.commands.context import AutocompleteContext
 
-from utils.mod.give_birthday_role import MONTH_MAPPING
-
 
 @cached(ttl=3600)
 async def get_skylar_api():
@@ -47,15 +45,6 @@ async def device_autocompleter(ctx: AutocompleteContext):
     devices = [device.get("Brand names")[:100] for device in boards if device.get("Brand names") is not None and ctx.value.lower() in device.get("Brand names").lower()]
     devices.sort()
     return devices[:25]
-
-
-async def date_autocompleter(ctx: AutocompleteContext) -> list:
-    """Autocompletes the date parameter for !mybirthday"""
-    month = MONTH_MAPPING.get(ctx.options.get("month"))
-    if month is None:
-        return []
-
-    return [i for i in range(1, month["max_days"]+1) if str(i).startswith(str(ctx.value))][:25]
 
 
 async def tags_autocomplete(ctx: AutocompleteContext):
