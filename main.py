@@ -27,6 +27,7 @@ initial_extensions = [
         "cogs.commands.misc.devices",
         "cogs.commands.misc.karma",
         "cogs.commands.misc.misc",
+        "cogs.commands.misc.nerd",
         "cogs.commands.mod.antiraid",
         "cogs.commands.mod.filter",
         "cogs.commands.mod.modactions",
