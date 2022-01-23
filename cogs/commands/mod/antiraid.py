@@ -319,7 +319,7 @@ class AntiRaid(commands.Cog):
         
         default_perms = channel.overwrites_for(default_role)
 
-        if lock and default_perms.send_messages is True:
+        if lock and default_perms.send_message:
             default_perms.send_messages = False
         elif lock is None and (not default_perms.send_messages):
             default_perms.send_messages = True

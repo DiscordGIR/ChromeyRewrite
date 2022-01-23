@@ -64,7 +64,7 @@ class DealWatcher(commands.Cog):
         # is this thread still supposed to be running?
         while not self.loops[feed["name"]].cancelled():
             # handle feeds with/without HTTP last-modified support differently
-            if feed['good_feed'] is True:
+            if feed['good_feed']:
                 await self.good_feed(feed)
             else:
                 await self.bad_feed(feed)

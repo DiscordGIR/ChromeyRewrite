@@ -408,7 +408,7 @@ class AntiRaidMonitor(commands.Cog):
   
         default_perms = channel.overwrites_for(default_role)
 
-        if default_perms.send_messages is True:
+        if default_perms.send_messages:
             default_perms.send_messages = False
 
         

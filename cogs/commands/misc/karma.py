@@ -279,7 +279,7 @@ class Karma(commands.Cog):
 
         data = sorted(user_service.get_user(member.id).karma_received_history, key=lambda d: d['date'], reverse=True)
 
-        if (len(data) == 0):
+        if not data:
             raise commands.BadArgument("This user had no history.")
         
         ctx.invokee = member
@@ -303,7 +303,7 @@ class Karma(commands.Cog):
 
         data = sorted(user_service.get_user(mod.id).karma_given_history, key=lambda d: d['date'], reverse=True)
 
-        if (len(data) == 0):
+        if not data:
             raise commands.BadArgument("This user had no history.")
 
         ctx.invoker = mod
@@ -317,7 +317,7 @@ class Karma(commands.Cog):
 
         data = user_service.leaderboard()
 
-        if (len(data) == 0):
+        if not data:
             raise commands.BadArgument("No history in this guild!")
         else:
             data_final = []
