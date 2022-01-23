@@ -65,9 +65,12 @@ class CrosBlog(commands.Cog):
     async def check_new_entries(self, posts):
         # loop through new entries to see if tags contain one that we want
         # if we find match, post update in channel
-        print(posts)
         for post in posts:
-            tags = [thing["term"] for thing in post["tags"]]
+            try:
+                tags = [thing["term"] for thing in post["tags"]]
+            except:
+                continue
+
             if "Chrome OS" in tags:
                 if "Stable updates" in tags:
                     await self.push_update(post, "Stable Channel")
@@ -77,7 +80,6 @@ class CrosBlog(commands.Cog):
                     await self.push_update(post, "Dev Channel")
                 elif "Canary updates" in tags:
                     await self.push_update(post, "Canary Channel")
-        pass
 
     async def push_update(self, post, category=None):
         # which guild to post to depending on if we're prod or dev
