@@ -89,11 +89,11 @@ class CrosBlog(commands.Cog):
         channel = self.bot.get_guild(guild_id).get_channel(
             guild_service.get_guild().channel_deals)
         if (category is None):
-            await (channel.send(f'New blog was posted!\n{post.title}\n{post.link}'))
+            await channel.send(f'New blog was posted!\n{post.title}\n{post.link}', allowed_mentions=discord.AllowedMentions(roles=True))
         else:
             role = discord.utils.get(guild_roles, name=category)
             if role:
-                await (channel.send(f'{role.mention} New blog was posted for {category}!\n{post.title}\n{post.link}'))
+                await channel.send(f'{role.mention} New blog was posted for {category}!\n{post.title}\n{post.link}', allowed_mentions=discord.AllowedMentions(roles=True))
 
 
 def setup(bot):
