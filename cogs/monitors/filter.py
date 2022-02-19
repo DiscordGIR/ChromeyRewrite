@@ -49,8 +49,8 @@ class Filter(commands.Cog):
             return
         if message.content and await self.do_invite_filter(message, db_guild):
             return
-        if await self.do_spoiler_newline_filter(message, db_guild):
-            return
+        # if await self.do_spoiler_newline_filter(message, db_guild):
+        #     return
 
     async def nick_filter(self, member):
         triggered_words = find_triggered_filters(
