@@ -21,7 +21,7 @@ from utils.mod.mod_logs import (prepare_editreason_log, prepare_liftwarn_log, pr
 from utils.mod.modactions_helpers import (
     add_ban_case, add_kick_case, notify_user, submit_mod_log)
 from utils.mod.global_modactions import ban, warn
-from utils.permissions.checks import PermissionsFailure, always_whisper, mod_and_up
+from utils.permissions.checks import PermissionsFailure, always_whisper, mod_and_up, nerds_and_up
 from utils.permissions.converters import (
     mods_and_above_external_resolver, mods_and_above_member_resolver, user_resolver)
 from utils.permissions.slash_perms import slash_perms
@@ -101,10 +101,10 @@ class ModActions(commands.Cog):
         await ctx.respond(embed=log)
         await submit_mod_log(ctx, db_guild, member, log)
 
-    @mod_and_up()
+    @nerds_and_up()
     @slash_command(guild_ids=[cfg.guild_id], description="Mute a user", permissions=slash_perms.mod_and_up())
     async def mute(self, ctx: ChromeyContext, member: Option(discord.Member, description="User to mute"), duration: Option(str, description="Duration for mute") = "", reason: Option(str, description="Reason for mute") = "No reason.") -> None:
-        """Mutes a user (mod only)
+        """Mutes a user (nerd and up only)
 
         Example usage
         --------------
@@ -172,10 +172,10 @@ class ModActions(commands.Cog):
         await notify_user(member, f"You have been muted in {ctx.guild.name}", log)
         await submit_mod_log(ctx, db_guild, member, log)
 
-    @mod_and_up()
+    @nerds_and_up()
     @slash_command(guild_ids=[cfg.guild_id], description="Unmute a user", permissions=slash_perms.mod_and_up())
     async def unmute(self, ctx: ChromeyContext, member: Option(discord.Member, description="User to mute"), reason: Option(str, description="Reason for mute")) -> None:
-        """Unmutes a user (mod only)
+        """Unmutes a user (nerd and up only)
 
         Example usage
         --------------
