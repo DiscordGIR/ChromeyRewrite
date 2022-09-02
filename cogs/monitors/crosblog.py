@@ -50,6 +50,7 @@ class CrosBlog(commands.Cog):
                                  for something in self.prev_data.entries])
             print(f"Found {len(data.entries)} posts!")
             print([post.title for post in data.entries])
+            print("Max prev date", max_prev_date)
             print("-------------")
             # get a list of posts from the new posts where the date is newer than the max_prev_date
             new_posts = [
@@ -60,6 +61,8 @@ class CrosBlog(commands.Cog):
                 for post in new_posts:
                     print(f'NEW BLOG ENTRY: {post.title} {post.link}')
                 await self.check_new_entries(new_posts)
+            else:
+                print("No new posts found!")
 
             # update local cache
             self.prev_data = data
@@ -88,6 +91,7 @@ class CrosBlog(commands.Cog):
     async def push_update(self, post, category=None):
         # which guild to post to depending on if we're prod or dev
         # post update to channel
+        print(f"Posting {post.title}!")
         guild_id = cfg.guild_id
         guild_roles = self.bot.get_guild(guild_id).roles
         channel = self.bot.get_guild(guild_id).get_channel(
