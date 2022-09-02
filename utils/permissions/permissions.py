@@ -1,5 +1,5 @@
 import discord
-from discord.commands.permissions import CommandPermission
+# from discord.commands.permissions import CommandPermission
 
 from typing import List
 from data.model.guild import Guild
@@ -102,18 +102,19 @@ class Permissions:
         return self._permissions[level](guild, member)
 
     def level_role_list(self, level: int) -> List[int]:
-        if level == 0:
-            return []
-        elif level > 3:
-            # bot owner permission
-            return [CommandPermission(id=cfg.guild_owner_id, type=2, permission=True)]
+        return []
+        # if level == 0:
+        #     return []
+        # elif level > 3:
+        #     # bot owner permission
+        #     return [CommandPermission(id=cfg.guild_owner_id, type=2, permission=True)]
 
-        if self._role_permission_mapping.get(level) is None:
-            raise AttributeError(f"Permission level {level} not found")
+        # if self._role_permission_mapping.get(level) is None:
+        #     raise AttributeError(f"Permission level {level} not found")
 
-        # generate role permissions up until Administrator (guild owner always has access!)
-        return [CommandPermission(id=self._role_permission_mapping[_level], type=1, permission=True) for _level in range(level, 4)] \
-            + [CommandPermission(id=cfg.guild_owner_id, type=2, permission=True) ] + [ CommandPermission(id=cfg.guild_owner_id, type=2, permission=True)]  # bot owner permission
+        # # generate role permissions up until Administrator (guild owner always has access!)
+        # return [CommandPermission(id=self._role_permission_mapping[_level], type=1, permission=True) for _level in range(level, 4)] \
+        #     + [CommandPermission(id=cfg.guild_owner_id, type=2, permission=True) ] + [ CommandPermission(id=cfg.guild_owner_id, type=2, permission=True)]  # bot owner permission
 
     def calculate_permissions(self, level: int):
         if self._permissions.get(level) is None:
