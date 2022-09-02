@@ -26,6 +26,7 @@ class CrosBlog(commands.Cog):
     async def watcher(self):
         # wait for bot to start
         await self.bot.wait_until_ready()
+        print("Starting Cros Blog Watcher...")
         while not self.loop.cancelled():
 
             """ This commented out code doesn't work for feeds that don't support etag/last-modified headers :(
@@ -47,6 +48,9 @@ class CrosBlog(commands.Cog):
             # determine the newest post date from the cached posts
             max_prev_date = max([something["published_parsed"]
                                  for something in self.prev_data.entries])
+            print(f"Found {len(data.entries)} posts!")
+            print([post.title for post in data.entries])
+            print("-------------")
             # get a list of posts from the new posts where the date is newer than the max_prev_date
             new_posts = [
                 post for post in data.entries if post["published_parsed"] > max_prev_date]
