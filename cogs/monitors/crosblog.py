@@ -27,7 +27,7 @@ class CrosBlog(commands.Cog):
         # wait for bot to start
         await self.bot.wait_until_ready()
         print("Starting Cros Blog Watcher...")
-        while not self.loop.cancelled():
+        while True:
             print("Loop running...")
             """ This commented out code doesn't work for feeds that don't support etag/last-modified headers :(
             # get args for parser -- if feed has modified and etag support, use those as parameters
@@ -69,6 +69,8 @@ class CrosBlog(commands.Cog):
             # wait 1 minute before checking feed again
             print("Loop about to sleep...")
             await asyncio.sleep(60)
+            print("After sleep")
+        print("Exited")
 
     async def check_new_entries(self, posts):
         # loop through new entries to see if tags contain one that we want
