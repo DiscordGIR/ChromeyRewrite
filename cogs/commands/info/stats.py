@@ -110,7 +110,6 @@ class Stats(commands.Cog):
         if guild.icon is not None:
             embed.set_thumbnail(url=guild.icon)
 
-        embed.add_field(name="Region", value=guild.region, inline=True)
         embed.add_field(name="Boost Tier",
                         value=guild.premium_tier, inline=True)
         embed.add_field(name="Users", value=guild.member_count, inline=True)

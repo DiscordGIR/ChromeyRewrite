@@ -26,8 +26,8 @@ class CrosBlog(commands.Cog):
     async def watcher(self):
         # wait for bot to start
         await self.bot.wait_until_ready()
-        while not self.loop.cancelled():
-
+        print("Starting Cros Blog Watcher...")
+        while True:
             """ This commented out code doesn't work for feeds that don't support etag/last-modified headers :(
             # get args for parser -- if feed has modified and etag support, use those as parameters
             # we use modified and etag data from previous iteration to see if anything changed
@@ -56,6 +56,8 @@ class CrosBlog(commands.Cog):
                 for post in new_posts:
                     print(f'NEW BLOG ENTRY: {post.title} {post.link}')
                 await self.check_new_entries(new_posts)
+            else:
+                print("No new posts found!")
 
             # update local cache
             self.prev_data = data
@@ -84,6 +86,7 @@ class CrosBlog(commands.Cog):
     async def push_update(self, post, category=None):
         # which guild to post to depending on if we're prod or dev
         # post update to channel
+        print(f"Posting {post.title}!")
         guild_id = cfg.guild_id
         guild_roles = self.bot.get_guild(guild_id).roles
         channel = self.bot.get_guild(guild_id).get_channel(

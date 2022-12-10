@@ -38,8 +38,8 @@ async def fetch_ban_cache(bot, ban_cache: BanCache):
         "Ban cache"
 
     """
-    guild = bot.get_guild(cfg.guild_id)
-    the_list = await guild.bans()
+    guild: discord.Guild = bot.get_guild(cfg.guild_id)
+    the_list = await guild.bans().flatten()
     ban_cache.cache = {entry.user.id for entry in the_list}
 
 

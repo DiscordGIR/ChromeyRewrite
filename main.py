@@ -40,10 +40,7 @@ initial_extensions = [
         "cogs.monitors.sticky_roles",
 ]
 
-intents = discord.Intents.default()
-intents.members = True
-intents.messages = True
-intents.presences = True
+intents = discord.Intents.all()
 mentions = discord.AllowedMentions(everyone=False, users=True, roles=False)
 
 class Bot(commands.Bot):
