@@ -28,7 +28,6 @@ class CrosBlog(commands.Cog):
         await self.bot.wait_until_ready()
         print("Starting Cros Blog Watcher...")
         while True:
-            print("Loop running...")
             """ This commented out code doesn't work for feeds that don't support etag/last-modified headers :(
             # get args for parser -- if feed has modified and etag support, use those as parameters
             # we use modified and etag data from previous iteration to see if anything changed
@@ -48,10 +47,6 @@ class CrosBlog(commands.Cog):
             # determine the newest post date from the cached posts
             max_prev_date = max([something["published_parsed"]
                                  for something in self.prev_data.entries])
-            print(f"Found {len(data.entries)} posts!")
-            print([post.title for post in data.entries])
-            print("Max prev date", max_prev_date)
-            print("-------------")
             # get a list of posts from the new posts where the date is newer than the max_prev_date
             new_posts = [
                 post for post in data.entries if post["published_parsed"] > max_prev_date]
@@ -67,10 +62,7 @@ class CrosBlog(commands.Cog):
             # update local cache
             self.prev_data = data
             # wait 1 minute before checking feed again
-            print("Loop about to sleep...")
             await asyncio.sleep(60)
-            print("After sleep")
-        print("Exited")
 
     async def check_new_entries(self, posts):
         # loop through new entries to see if tags contain one that we want

@@ -15,29 +15,35 @@ async def mods_and_above_member_resolver(ctx: ChromeyContext, argument):
 async def mods_and_above_external_resolver(ctx: ChromeyContext, argument):
     if isinstance(argument, discord.Member):
         user = argument
+    elif isinstance(argument, discord.User):
+        user = argument
     else:
         try:
             argument = int(argument)
             user = await ctx.bot.fetch_user(argument)
-        except Exception:
-            raise PermissionsFailure("Could not parse argument \"user\".")
         except NotFound:
             raise PermissionsFailure(
                 f"Couldn't find user with ID {argument}")
+        except Exception as e:
+            print(e)
+            raise PermissionsFailure("Could not parse argument \"user\".")
             
     await check_invokee(ctx, user)
     return user 
 
 
 async def user_resolver(ctx: ChromeyContext, argument):
-    try:
-        argument = int(argument)
-        user = await ctx.bot.fetch_user(argument)
-    except Exception:
-        raise PermissionsFailure("Could not parse argument \"user\".")
-    except NotFound:
-        raise PermissionsFailure(
-            f"Couldn't find user with ID {argument}")
+    if isinstance(argument, discord.User):
+        user = argument
+    else:
+        try:
+            argument = int(argument)
+            user = await ctx.bot.fetch_user(argument)
+        except NotFound:
+            raise PermissionsFailure(
+                f"Couldn't find user with ID {argument}")
+        except Exception:
+            raise PermissionsFailure("Could not parse argument \"user\".")
         
     return user 
 
